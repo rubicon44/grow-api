@@ -42,5 +42,15 @@ module GrowApi
       g.helper false
       g.test_framework false
     end
+
+    # setting of CORS
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins ENV["FRONTEND_ORIGIN"]
+        resource "*",
+          headers: :any,
+          methods: [:get, :post, :patch, :delete, :options, :head]
+      end
+    end
   end
 end
