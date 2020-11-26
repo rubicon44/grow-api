@@ -5,6 +5,7 @@ class TasksController < ApplicationController
   end
 
   def show
+    @task = Task.find(params[:id])
     render json: @task
   end
 
