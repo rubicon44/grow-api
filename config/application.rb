@@ -23,6 +23,8 @@ module GrowApi
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
+    config.i18n.default_locale = :ja
+    config.time_zone = 'Tokyo'
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
@@ -33,5 +35,12 @@ module GrowApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # stop default generate
+    config.generators do |g|
+      g.assets false
+      g.helper false
+      g.test_framework false
+    end
   end
 end
