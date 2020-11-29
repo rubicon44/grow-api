@@ -21,8 +21,9 @@ class TasksController < ApplicationController
 
   def update
     @task = Task.find(params[:id])
-    @task.update_attributes(task: params[:task])
-    render json: @task
+    if @task.update(task_params)
+      render json: @task, status: 201
+    end
   end
 
   def destroy
