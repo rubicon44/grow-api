@@ -1,24 +1,53 @@
-# README
+# 概要
+Growは、転職用ポートフォリオとして制作したタスク管理サービスです。
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## URL
+準備中
 
-Things you may want to cover:
+## アピールポイント
+準備中
 
-* Ruby version
+## 使用技術
+【バックエンド】
+- Ruby 2.7.1
+- Ruby on Rails 6.0.3
 
-* System dependencies
+【フロントエンド】
+- React
+- Material-UI
+- styled-components
 
-* Configuration
+【テスト】
+~~- Rspec~~→未実装
+~~- Rubocop~~未実装
 
-* Database creation
+【CI/CD】
+~~- Circle CI~~未実装
 
-* Database initialization
+【その他】
+- Docker
+- Docker Compose
 
-* How to run the test suite
+【インフラ】
+~~- Firebase~~→未実装
+  ~~- Firebase Authentication~~
+  ~~- Firebase Hosting~~
+~~- AWS~~→未実装
 
-* Services (job queues, cache servers, search engines, etc.)
+## DB設計図（Cacoo使用）
+準備中
 
-* Deployment instructions
+## AWS構成図（Cacoo使用）
+準備中
 
-* ...
+## 機能一覧
+- ログイン機能/ユーザー登録機能（Firebase Authentication）
+- タスク管理機能
+  - 登録（Title、Content、Statusの3つを登録可能）
+  - 一覧表示
+  - 詳細表示
+  - 編集
+  - 削除
+
+# 今回の開発を終えての所感
+準備中
