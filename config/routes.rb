@@ -4,4 +4,5 @@ Rails.application.routes.draw do
   resources :tasks
   resources :users
   post "/users", to: "users#create"
+  post "/users/sign_in", to: "sessions#create"
 end
