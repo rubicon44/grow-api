@@ -1,0 +1,4 @@
+jwt:
+  alg: 'HS256'
+  time_exp: 24
+per_page: 12
