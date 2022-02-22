@@ -1,4 +1,6 @@
 class UsersController < ApplicationController
+  skip_before_action :check_authenticate!, only: %i(create), raise: false
+
   def index
     @user = User.all
     render json: @user

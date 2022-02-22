@@ -1,5 +1,5 @@
 class SessionsController < ApplicationController
-  # skip_before_action :check_authenticate!, only: %i(create)
+  skip_before_action :check_authenticate!, only: %i(create), raise: false
 
   def create
     token = request.headers["idToken"]
