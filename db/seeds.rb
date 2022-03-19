@@ -6,8 +6,12 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
+User.create([
+  {name: "test3", email: "test3@test3.com"}
+])
+
 Task.create([
-  {title: "Web系自社開発企業転職", content: "aaa"},
-  {title: "フリーランス月50万", content: "bbb"},
-  {title: "個人サービス月250万", content: "bbb"}
+  {title: "Web系自社開発企業転職", content: "aaa", user_id: "1"},
+  {title: "フリーランス月50万", content: "bbb", user_id: "1"},
+  {title: "個人サービス月250万", content: "bbb", user_id: "1"}
 ])

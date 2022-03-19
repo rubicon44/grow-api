@@ -11,6 +11,8 @@ class TasksController < ApplicationController
 
   def create
     @task = Task.new(task_params)
+    @user = User.find_by(firebase_id: params[:user_id])
+    @task.user_id = @user.id
 
     if @task.save
       render json: @task, status: 201
