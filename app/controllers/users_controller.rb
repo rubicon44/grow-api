@@ -16,6 +16,9 @@ class UsersController < ApplicationController
   end
 
   def show
+    @user = User.find(params[:id])
+    @tasks = Task.where(user_id: params[:id])
+    render json: { user: @user, tasks: @tasks }, status: 201
   end
 
   def update
@@ -24,6 +27,6 @@ class UsersController < ApplicationController
   private
 
   def params_user_create
-    params.require(:user).permit(:name, :email)
+    params.require(:user).permit(:name, :email, :firebase_id)
   end
 end
