@@ -17,8 +17,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
-    @tasks = Task.where(user_id: params[:id])
-    render json: { user: @user, tasks: @tasks }, status: 201
+    render json: { user: @user }, include: [:tasks], status: 201
   end
 
   def update
