@@ -21,11 +21,21 @@ class UsersController < ApplicationController
   end
 
   def update
+    @user = User.find(params[:id])
+    if @user.update(params_user_update)
+      render json: { user: @user }, status: 201
+    else
+      render json: {"error": @user.errors}, status: 500
+    end
   end
 
   private
 
   def params_user_create
     params.require(:user).permit(:name, :email, :firebase_id)
+  end
+
+  def params_user_update
+    params.require(:user).permit(:profile)
   end
 end
