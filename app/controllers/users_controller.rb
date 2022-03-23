@@ -36,6 +36,6 @@ class UsersController < ApplicationController
   end
 
   def params_user_update
-    params.require(:user).permit(:profile)
+    params.require(:user).permit(:bio)
   end
 end
