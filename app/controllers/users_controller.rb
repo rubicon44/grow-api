@@ -17,6 +17,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    # @likes = @user.like_tasks
     render json: { user: @user }, include: [:tasks], status: 201
   end
 
