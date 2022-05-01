@@ -6,6 +6,8 @@ class LikesController < ApplicationController
     # todo: フロントに返却するjsonの形はどのようなものがベストか考えよう。
     # フロントの人が使いやすいように、またバックエンドの人も作りやすいように。直感的に作る？何かのルールを参考にする？
 
+    # todo: API側でcountしてから返すのではなく、front側で配列.lengthで長さを取得した方が良いらしい(検証)。
+
     @like = Like.find_by(user_id: params[:current_user_id], task_id: params[:task_id])
     if @like.present?
       @task_id = @like.task_id
