@@ -17,8 +17,15 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
-    # @likes = @user.like_tasks
-    render json: { user: @user }, include: [:tasks], status: 201
+    # @like_tasks = @user.like_tasks
+    @likes = Like.where(user_id: params[:id])
+    @task_created_user = []
+    @likes.each do |like|
+      @task_created_user.push(like.task.user)
+    end
+    # @task_and_task_created_user = { "like_tasks" => @like_tasks, "task_created_user" => @task_created_user }
+    # render json: { user: @user }, include: [:tasks, :like_tasks], status: 201
+    render json: { user: @user.as_json(include: [:tasks, :like_tasks]), task_created_user: @task_created_user }, status: 201
   end
 
   def update
