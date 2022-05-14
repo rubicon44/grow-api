@@ -1,5 +1,7 @@
 class UsersController < ApplicationController
   skip_before_action :check_authenticate!, only: %i(create), raise: false
+  # skip_before_action :check_authenticate!, only: %i(followings), raise: false
+  # skip_before_action :check_authenticate!, only: %i(followers), raise: false
 
   def index
     @user = User.all
@@ -35,6 +37,18 @@ class UsersController < ApplicationController
     else
       render json: {"error": @user.errors}, status: 500
     end
+  end
+
+  def followings
+    user = User.find(params[:id])
+    @followings = user.followings
+    render json: { followings: @followings }, status: 201
+  end
+
+  def followers
+    user = User.find(params[:id])
+    @users = user.followers
+    render json: { users: @users }, status: 201
   end
 
   private
