@@ -47,8 +47,8 @@ class UsersController < ApplicationController
 
   def followers
     user = User.find(params[:id])
-    @users = user.followers
-    render json: { users: @users }, status: 201
+    @followers = user.followers
+    render json: { followers: @followers }, status: 201
   end
 
   private
