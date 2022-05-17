@@ -1,5 +1,4 @@
 class LikesController < ApplicationController
-  # before_action :authenticate_user!, except: %i[index]
   skip_before_action :check_authenticate!, only: %i(index, create, destroy), raise: false
 
   def index
