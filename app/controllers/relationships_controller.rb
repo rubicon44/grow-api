@@ -6,10 +6,13 @@ class RelationshipsController < ApplicationController
     @user = User.find(params[:follower_id])
     @current_user = User.find(params[:following_id])
     @current_user.follow(@user)
-    render json: @user, status: 201
 
-    # @user = User.find(params[:user_id])
-    # @user.create_notification_follow!(current_user)
+    # follow notification(Not render this)
+    @noti_user = User.find(params[:follower_id])
+    @current_user = User.find(params[:following_id])
+    @noti_user.create_notification_follow!(@current_user)
+
+    render json: @user, status: 201
   end
 
   def destroy

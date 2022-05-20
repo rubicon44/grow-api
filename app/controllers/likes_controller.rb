@@ -36,6 +36,12 @@ class LikesController < ApplicationController
       @liked_user_id = @like.user_id
       @like_id = @like.id
     end
+
+    # like notification(Not render this)
+    @noti_task = Task.find(params[:task_id])
+    @current_user = User.find(params[:current_user_id])
+    @noti_task.create_notification_like!(@current_user)
+
     render json: { task_id: @task_id, like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
   end
 
