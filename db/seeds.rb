@@ -7,7 +7,7 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 User.create([
-  {name: "test3", email: "test3@test3.com"}
+  {nickname: "test3", email: "test3@test3.com"}
 ])
 
 Task.create([
