@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_01_132549) do
+ActiveRecord::Schema.define(version: 2022_06_02_132605) do
 
   create_table "likes", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
     t.integer "task_id"
@@ -58,8 +58,8 @@ ActiveRecord::Schema.define(version: 2022_06_01_132549) do
     t.string "firebase_id"
     t.string "password_digest"
     t.text "bio"
-    t.string "user_name"
-    t.index ["user_name"], name: "index_users_on_user_name", unique: true
+    t.string "username"
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
 end

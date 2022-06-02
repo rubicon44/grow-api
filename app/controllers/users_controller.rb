@@ -54,10 +54,10 @@ class UsersController < ApplicationController
   private
 
   def params_user_create
-    params.require(:user).permit(:nickname, :user_name, :email, :firebase_id)
+    params.require(:user).permit(:nickname, :username, :email, :firebase_id)
   end
 
   def params_user_update
-    params.require(:user).permit(:nickname, :user_name, :bio)
+    params.require(:user).permit(:nickname, :username, :bio)
   end
 end
