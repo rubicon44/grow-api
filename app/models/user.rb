@@ -1,5 +1,8 @@
 class User < ApplicationRecord
   # include ActiveModel::Serializers::JSON
+
+  validates :username, uniqueness: true
+
   has_many :tasks
   has_many :likes, dependent: :destroy
   has_many :like_tasks, through: :likes, source: :task
