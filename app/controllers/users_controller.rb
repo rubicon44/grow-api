@@ -18,9 +18,9 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find_by(username: params[:username])
     # @like_tasks = @user.like_tasks
-    @likes = Like.where(user_id: params[:id])
+    @likes = Like.where(user_id: @user.id)
     @task_created_user = []
     @likes.each do |like|
       @task_created_user.push(like.task.user)
@@ -31,7 +31,7 @@ class UsersController < ApplicationController
   end
 
   def update
-    @user = User.find(params[:id])
+    @user = User.find_by(username: params[:username])
     if @user.update(params_user_update)
       render json: { user: @user }, status: 201
     else

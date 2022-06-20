@@ -1,12 +1,6 @@
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
-  # resources :users
-  post "/users", to: "users#create"
-  get "/users/:id", to: "users#show"
-  put "/users/:id", to: "users#update"
-  post "/users/sign_in", to: "sessions#create"
-
   resources :tasks do
     # resources :comments, only: [:create, :destroy]
     resources :likes, only: [:index, :create, :destroy]
@@ -20,4 +14,10 @@ Rails.application.routes.draw do
 
   resources :notifications, only: [:index]
   resources :searches, only: [:index]
+
+  # resources :users
+  post "/users", to: "users#create"
+  get "/:username", to: "users#show"
+  put "/:username", to: "users#update"
+  post "/users/sign_in", to: "sessions#create"
 end
