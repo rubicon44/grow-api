@@ -1,4 +1,6 @@
 class TasksController < ApplicationController
+  # skip_before_action :check_authenticate!, only: %i(index), raise: false
+
   def index
     @task = Task.all
     render json: @task, include: [:user]
