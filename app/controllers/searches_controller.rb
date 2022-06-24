@@ -12,17 +12,26 @@ class SearchesController < ApplicationController
   def search_for(model, contents, method)
     if model == 'user'
       if method == 'perfect'
-        User.where(name: contents)
+        @users = User.where(username: contents)
+        return { "users_for_user" => @users }
       else
-        User.where('name LIKE ?', '%'+contents+'%')
+        @users = User.where('username LIKE ?', '%'+contents+'%')
+        return { "users_for_user" => @users }
       end
     elsif model == 'task'
       if method == 'perfect'
         Task.where(title: contents)
         Task.where(content: contents)
       else
-        Task.where('title LIKE ?', '%'+contents+'%')
-        Task.where('content LIKE ?', '%'+contents+'%')
+        @tasks = Task.where('title LIKE ?', '%'+contents+'%')
+        # @tasks = Task.where('content LIKE ?', '%'+contents+'%')
+
+        @users = []
+        @tasks.each do |task|
+          @user = User.find(task.user_id)
+          @users.push(@user)
+        end
+        return { "tasks" => @tasks, "users" => @users }
       end
     end
   end
