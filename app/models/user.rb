@@ -8,13 +8,14 @@ class User < ApplicationRecord
   has_many :like_tasks, through: :likes, source: :task
 
   has_many :active_relationships, class_name: 'Relationship', foreign_key: :following_id, dependent: :destroy
-  has_many :followings, through: :active_relationships, source: :follower
   has_many :passive_relationships, class_name: 'Relationship', foreign_key: :follower_id, dependent: :destroy
+  has_many :followings, through: :active_relationships, source: :follower
   has_many :followers, through: :passive_relationships, source: :following
 
-  has_many :active_notifications, class_name: 'Notification', foreign_key: 'visitor_id', dependent: :destroy,
-  inverse_of: 'visitor'
+  has_many :active_notifications, class_name: 'Notification', foreign_key: 'visitor_id', dependent: :destroy
   has_many :passive_notifications, class_name: 'Notification', foreign_key: 'visited_id', dependent: :destroy
+  has_many :visitors, through: :active_notifications, source: :visitor
+  has_many :visiteds, through: :passive_notifications, source: :visited
 
   # like function
   def already_liked?(task)
