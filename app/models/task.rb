@@ -1,7 +1,9 @@
 class Task < ApplicationRecord
   # include ActiveModel::Serializers::JSON
   before_create :set_untitled
+  before_create :set_task_date
   before_update :set_untitled
+  before_update :set_task_date
   belongs_to :user
   has_many :likes, dependent: :destroy
   has_many :liked_users, through: :likes, source: :user
@@ -30,6 +32,16 @@ class Task < ApplicationRecord
   def set_untitled
     if self.title.blank?
       self.title = "無題"
+    end
+  end
+
+  def set_task_date
+    if self.start_date.blank?
+      self.start_date = "#{Date.current}"
+    end
+
+    if self.end_date.blank?
+      self.end_date = "#{Date.tomorrow}"
     end
   end
 end
