@@ -1,6 +1,4 @@
 class User < ApplicationRecord
-  # include ActiveModel::Serializers::JSON
-
   validates :username, uniqueness: true
 
   has_many :tasks
