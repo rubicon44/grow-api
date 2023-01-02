@@ -3,10 +3,10 @@ class Search < ApplicationRecord
     if model == 'user'
       if method == 'perfect'
         @users = User.where(username: contents)
-        return { "users_for_user": @users }
+        return { users: @users }
       else
         @users = User.where('username LIKE ?', '%'+contents+'%')
-        return { "users_for_user": @users }
+        return { users: @users }
       end
     elsif model == 'task'
       if method == 'perfect'
@@ -14,12 +14,12 @@ class Search < ApplicationRecord
         Task.where(content: contents)
       else
         @tasks = Task.where('title LIKE ?', '%'+contents+'%')
-        @users = []
+        @task_users = []
         @tasks.each do |task|
-          @user = User.find(task.user_id)
-          @users.push(@user)
+          @task_user = User.find(task.user_id)
+          @task_users.push(@task_user)
         end
-        return { "tasks": @tasks, "users": @users }
+        return { tasks: @tasks, task_users: @task_users }
       end
     end
   end
