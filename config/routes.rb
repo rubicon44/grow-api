@@ -8,8 +8,6 @@ Rails.application.routes.draw do
 
   resources :users, only: [:show] do
     resource :relationships, only: [:create, :destroy]
-    get :followings, on: :member
-    get :followers, on: :member
   end
 
   resources :notifications, only: [:index]
@@ -19,5 +17,7 @@ Rails.application.routes.draw do
   post "/users", to: "users#create"
   get "/:username", to: "users#show"
   put "/:username", to: "users#update"
+  get '/:username/followings', to: 'users#followings'
+  get "/:username/followers", to: "users#followers"
   post "/users/sign_in", to: "sessions#create"
 end
