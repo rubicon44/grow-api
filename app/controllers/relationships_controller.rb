@@ -10,8 +10,7 @@ class RelationshipsController < ApplicationController
     # follow notification(Not render this)
     @noti_user = User.find(params[:follower_id])
     @current_user = User.find(params[:following_id])
-    @noti_user.create_notification_follow!(@current_user)
-
+    @noti_user.create_notification_follow!(@current_user, @noti_user)
     render json: @user, status: 201
   end
 

@@ -19,15 +19,15 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find_by(username: params[:username])
-    # @like_tasks = @user.like_tasks
-    @likes = Like.where(user_id: @user.id)
-    @task_created_user = []
-    @likes.each do |like|
-      @task_created_user.push(like.task.user)
+    @liked_tasks = @user.like_tasks.order('likes.id DESC')
+
+    liked_tasks_with_user = []
+    @liked_tasks.each do |task|
+      user = User.find(task.user_id)
+      liked_tasks_with_user.push({task: task, user: user})
     end
-    # @task_and_task_created_user = { "like_tasks" => @like_tasks, "task_created_user" => @task_created_user }
-    # render json: { user: @user }, include: [:tasks, :like_tasks], status: 201
-    render json: { user: @user.as_json(include: [:tasks, :like_tasks]), task_created_user: @task_created_user }, status: 201
+
+    render json: { user: @user.as_json(include: [:tasks, :like_tasks]), liked_tasks_with_user: liked_tasks_with_user }, status: 201
   end
 
   def update
@@ -40,14 +40,14 @@ class UsersController < ApplicationController
   end
 
   def followings
-    user = User.find(params[:id])
-    @followings = user.followings
+    user = User.find_by(username: params[:username])
+    @followings = user.followings.order('relationships.id DESC')
     render json: { followings: @followings }, status: 201
   end
 
   def followers
-    user = User.find(params[:id])
-    @followers = user.followers
+    user = User.find_by(username: params[:username])
+    @followers = user.followers.order('relationships.id DESC')
     render json: { followers: @followers }, status: 201
   end
 
