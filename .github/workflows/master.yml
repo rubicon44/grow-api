@@ -37,4 +37,4 @@ jobs:
           environment_name: ${{ env.AWS_ENV_NAME }}
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
-          deployment_package: .
+          deployment_package: ${{ github.sha }}.zip
