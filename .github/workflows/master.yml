@@ -28,6 +28,10 @@ jobs:
           gem install bundler
           bundle install --jobs 4 --retry 3
 
+      - name: Build package
+        run: |
+          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+
       - name: Deploy to ElasticBeanstalk
         uses: einaregilsson/beanstalk-deploy@v14
         with:
@@ -37,4 +41,4 @@ jobs:
           environment_name: ${{ env.AWS_ENV_NAME }}
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
-          deployment_package: ${{ github.sha }}.zip
+          deployment_package: deployment-package.zip
