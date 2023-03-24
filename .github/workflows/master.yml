@@ -21,19 +21,17 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7
+          ruby-version: 2.7.1
 
       - name: Install dependencies
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3
-
       - name: Build application
         run: |
           bundle exec rake assets:precompile RAILS_ENV=production
           bundle exec rake assets:clean RAILS_ENV=production
           zip -r ${GITHUB_SHA::8}.zip .
-
       - name: Deploy to ElasticBeanstalk
         uses: einaregilsson/beanstalk-deploy@v14
         with:
