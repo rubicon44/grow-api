@@ -1,11 +1,22 @@
 FROM ruby:2.7.1-alpine
+
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache \
     build-base \
     mariadb-dev \
     tzdata \
-    nodejs
+    nodejs \
+    git \
+    curl \
+    libxml2-dev \
+    libxslt-dev \
+    postgresql-dev \
+    imagemagick-dev \
+    imagemagick \
+    file \
+    yarn
+
 RUN mkdir /grow-api
 ENV APP_ROOT /grow-api
 WORKDIR $APP_ROOT
