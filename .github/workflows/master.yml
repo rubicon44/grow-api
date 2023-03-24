@@ -27,11 +27,7 @@ jobs:
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3
-      - name: Build application
-        run: |
-          bundle exec rake assets:precompile RAILS_ENV=production
-          bundle exec rake assets:clean RAILS_ENV=production
-          zip -r ${GITHUB_SHA::8}.zip .
+
       - name: Deploy to ElasticBeanstalk
         uses: einaregilsson/beanstalk-deploy@v14
         with:
@@ -40,5 +36,5 @@ jobs:
           application_name: ${{ env.AWS_APP_NAME }}
           environment_name: ${{ env.AWS_ENV_NAME }}
           region: ${{ env.AWS_REGION }}
-          version_label: ${GITHUB_SHA::8}
-          deployment_package: ${GITHUB_SHA::8}.zip
+          version_label: ${{ github.sha }}
+          deployment_package: .
