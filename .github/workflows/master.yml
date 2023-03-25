@@ -26,9 +26,12 @@ jobs:
           ruby-version: 2.7.7
 
       - name: Install dependencies
+        env:
+          BUNDLE_PATH: vendor/bundle
         run: |
           gem install bundler
-          bundle install --jobs 4 --retry 3
+          bundle config path vendor/bundle
+          bundle install --retry 3 --jobs 4 --without development test
 
       - name: Build package
         run: |
