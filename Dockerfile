@@ -1,21 +1,11 @@
-FROM ruby:2.7.7-alpine
+FROM ruby:2.7.7
 
-RUN apk update && \
-    apk upgrade && \
-    apk add --no-cache \
-    build-base \
-    mariadb-dev \
-    tzdata \
-    nodejs \
-    git \
-    curl \
-    libxml2-dev \
-    libxslt-dev \
-    postgresql-dev \
-    imagemagick-dev \
-    imagemagick \
-    file \
-    yarn
+RUN apt-get update && \
+    apt-get install -y build-essential \
+                       libmariadb-dev-compat \
+                       libpq-dev \
+                       nodejs \
+                       yarn
 
 RUN mkdir /grow-api
 ENV APP_ROOT /grow-api
