@@ -47,14 +47,14 @@ jobs:
           $(aws ecr get-login --no-include-email --region ${{ env.AWS_REGION }})
           docker push $IMAGE_NAME
 
-      - name: Deploy to ElasticBeanstalk
-        uses: einaregilsson/beanstalk-deploy@v14
-        with:
-          aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ env.AWS_APP_NAME }}
-          environment_name: ${{ env.AWS_ENV_NAME }}
-          region: ${{ env.AWS_REGION }}
-          version_label: ${{ github.sha }}
-          docker_image: ${{ env.IMAGE_NAME }}
-          # deployment_package: deployment-package.zip
+      # - name: Deploy to ElasticBeanstalk
+      #   uses: einaregilsson/beanstalk-deploy@v14
+      #   with:
+      #     aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
+      #     aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+      #     application_name: ${{ env.AWS_APP_NAME }}
+      #     environment_name: ${{ env.AWS_ENV_NAME }}
+      #     region: ${{ env.AWS_REGION }}
+      #     version_label: ${{ github.sha }}
+      #     docker_image: ${{ env.IMAGE_NAME }}
+      #     # deployment_package: deployment-package.zip
