@@ -34,18 +34,27 @@ jobs:
           bundle config path vendor/bundle
           bundle install --retry 3 --jobs 4 --without development test
 
-      - name: Build package
-        run: |
-          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+      # - name: Build package
+      #   run: |
+      #     zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
 
       - name: Build Docker image
         env:
-          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-          IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}-.amazonaws.com
+          IMAGE_NAME: "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}"
         run: |
-          docker build -t $IMAGE_NAME:$ECR_IMAGE_TAG .
+          docker build -t "$IMAGE_NAME" .
           $(aws ecr get-login --no-include-email --region ${{ env.AWS_REGION }})
-          docker push $IMAGE_NAME
+          docker push "$IMAGE_NAME"
+
+      # - name: Build Docker image
+      #   env:
+      #     ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+      #     IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
+      #   run: |
+      #     docker build -t $IMAGE_NAME .
+      #     $(aws ecr get-login --no-include-email --region ${{ env.AWS_REGION }})
+      #     docker push $IMAGE_NAME
 
       # - name: Deploy to ElasticBeanstalk
       #   uses: einaregilsson/beanstalk-deploy@v14
