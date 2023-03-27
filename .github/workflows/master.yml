@@ -39,6 +39,11 @@ jobs:
       #   run: |
       #     zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
 
+      - name: Install aws-cli
+        run: |
+          sudo apt-get -y install python3-pip
+          sudo pip3 install awscli
+
       - name: Build Docker image
         env:
           # ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
