@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::API
-  # before_action :check_authenticate!
+  before_action :check_authenticate!
 
   def check_authenticate!
     token = request.headers["Authorization"]
