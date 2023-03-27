@@ -28,16 +28,16 @@ services:
       - db
     tty: true
     stdin_open: true
-  web:
-    build:
-      context: containers/nginx
-    volumes:
-      - public-data:/grow-api/public
-      - tmp-data:/grow-api/tmp
-    ports:
-      - 80:80
-    depends_on:
-      - app
+  # web:
+  #   build:
+  #     context: containers/nginx
+  #   volumes:
+  #     - public-data:/grow-api/public
+  #     - tmp-data:/grow-api/tmp
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - app
 
 volumes:
   public-data:
