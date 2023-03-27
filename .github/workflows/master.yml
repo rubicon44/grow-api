@@ -1,3 +1,5 @@
+# test
+
 on:
   push:
     branches:
@@ -35,10 +37,6 @@ jobs:
           bundle config path vendor/bundle
           bundle install --retry 3 --jobs 4 --without development test
 
-      # - name: Build package
-      #   run: |
-      #     zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
-
       - name: Install aws-cli
         run: |
           sudo apt-get -y install python3-pip
@@ -67,6 +65,10 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
+      - name: Build package
+        run: |
+          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+
       - name: Deploy to ElasticBeanstalk
         uses: einaregilsson/beanstalk-deploy@v14
         with:
@@ -77,4 +79,4 @@ jobs:
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
           docker_image: ${{ env.IMAGE_NAME }}
-          # deployment_package: deployment-package.zip
+          deployment_package: deployment-package.zip
