@@ -4,9 +4,12 @@ on:
       - master
 
 env:
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY_NAME: "grow-api"
+  ECR_IMAGE_TAG: "latest"
   AWS_APP_NAME: ${{ secrets.AWS_APP_NAME }}
   AWS_ENV_NAME: ${{ secrets.AWS_ENV_NAME }}
 
@@ -35,13 +38,23 @@ jobs:
         run: |
           zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
 
-      - name: Deploy to ElasticBeanstalk
-        uses: einaregilsson/beanstalk-deploy@v14
-        with:
-          aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ env.AWS_APP_NAME }}
-          environment_name: ${{ env.AWS_ENV_NAME }}
-          region: ${{ env.AWS_REGION }}
-          version_label: ${{ github.sha }}
-          deployment_package: deployment-package.zip
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
+        run: |
+          docker build -t $IMAGE_NAME .
+          $(aws ecr get-login --no-include-email --region ${{ env.AWS_REGION }})
+          docker push $IMAGE_NAME
+
+      # - name: Deploy to ElasticBeanstalk
+      #   uses: einaregilsson/beanstalk-deploy@v14
+      #   with:
+      #     aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
+      #     aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+      #     application_name: ${{ env.AWS_APP_NAME }}
+      #     environment_name: ${{ env.AWS_ENV_NAME }}
+      #     region: ${{ env.AWS_REGION }}
+      #     version_label: ${{ github.sha }}
+      #     docker_image: ${{ env.IMAGE_NAME }}
+      #     # deployment_package: deployment-package.zip
