@@ -10,6 +10,7 @@ services:
   #   volumes:
   #     - db-data:/var/lib/mysql
   db:
+    image: mysql:8.0.32
     environment:
       MYSQL_ROOT_PASSWORD: ${RDS_PASSWORD}
     ports:
