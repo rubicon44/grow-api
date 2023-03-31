@@ -48,8 +48,17 @@ test:
 #   production:
 #     url: <%= ENV['DATABASE_URL'] %>
 #
+
+# production:
+#   <<: *default
+#   database: grow_api_production
+#   username: grow_api
+#   password: <%= ENV['GROW_API_DATABASE_PASSWORD'] %>
+
 production:
   <<: *default
-  database: grow_api_production
-  username: grow_api
-  password: <%= ENV['GROW_API_DATABASE_PASSWORD'] %>
+  database: <%= ENV['RDS_DB_NAME'] %>
+  username: <%= ENV['RDS_USERNAME'] %>
+  password: <%= ENV['RDS_PASSWORD'] %>
+  host: <%= ENV['RDS_HOSTNAME'] %>
+  port: <%= ENV['RDS_PORT'] %>
