@@ -62,3 +62,4 @@ production:
   password: <%= ENV['RDS_PASSWORD'] %>
   host: <%= ENV['RDS_HOSTNAME'].gsub(/:\d+/, '') %>
   port: <%= ENV['RDS_PORT'] %>
+  socket: /var/lib/mysql/mysql.sock
