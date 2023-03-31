@@ -1,6 +1,7 @@
 Rails.application.configure do
   # config.hosts << ENV["ELB_HOST_NAME"]
-  config.hosts << "growapi-env.eba-mspxebzg.us-east-1.elasticbeanstalk.com"
+  # config.hosts << "growapi-env.eba-mspxebzg.us-east-1.elasticbeanstalk.com"
+  config.hosts.clear
 
   # Settings specified here will take precedence over those in config/application.rb.
 
