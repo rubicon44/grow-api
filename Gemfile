@@ -20,6 +20,7 @@ gem 'puma'
 # gem 'image_processing', '~> 1.2'
 
 # Reduces boot times through caching; required in config/boot.rb
+gem "active_model_serializers"
 gem 'bootsnap', require: false
 gem "config"
 gem "dotenv-rails", require: "dotenv/rails-now"
