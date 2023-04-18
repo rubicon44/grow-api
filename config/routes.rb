@@ -5,14 +5,13 @@ Rails.application.routes.draw do
       resources :likes, only: [:index, :create, :destroy]
     end
 
-    resources :users, only: [:show] do
+    resources :users, only: [:index, :create] do
       resource :relationships, only: [:create, :destroy]
     end
 
     resources :notifications, only: [:index]
     resources :searches, only: [:index]
 
-    post "/users", to: "users#create"
     get "/:username", to: "users#show"
     put "/:username", to: "users#update"
     get '/:username/followings', to: 'users#followings'

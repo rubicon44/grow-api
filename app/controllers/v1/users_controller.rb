@@ -20,15 +20,18 @@ module V1
 
     def show
       @user = User.find_by(username: params[:username])
-      @liked_tasks = @user.like_tasks.order('likes.id DESC')
+      if @user
+        @liked_tasks = @user.like_tasks.order('likes.id DESC')
+        liked_tasks_with_user = []
+        @liked_tasks.each do |task|
+          user = User.find(task.user_id)
+          liked_tasks_with_user.push({task: task, user: user})
+        end
 
-      liked_tasks_with_user = []
-      @liked_tasks.each do |task|
-        user = User.find(task.user_id)
-        liked_tasks_with_user.push({task: task, user: user})
+        render json: { user: @user.as_json(include: [:tasks, :like_tasks]), liked_tasks_with_user: liked_tasks_with_user }, status: 201
+      else
+        render json: { error: "User not found" }, status: 404
       end
-
-      render json: { user: @user.as_json(include: [:tasks, :like_tasks]), liked_tasks_with_user: liked_tasks_with_user }, status: 201
     end
 
     def update
@@ -42,14 +45,14 @@ module V1
 
     def followings
       user = User.find_by(username: params[:username])
-      @followings = user.followings.order('relationships.id DESC')
-      render json: { followings: @followings }, status: 201
+      followings = user.followings.order('relationships.id DESC')
+      render json: { followings: ActiveModel::Serializer::CollectionSerializer.new(followings, each_serializer: UserSerializer) }, status: 201
     end
 
     def followers
       user = User.find_by(username: params[:username])
-      @followers = user.followers.order('relationships.id DESC')
-      render json: { followers: @followers }, status: 201
+      followers = user.followers.order('relationships.id DESC')
+      render json: { followers: ActiveModel::Serializer::CollectionSerializer.new(followers, each_serializer: UserSerializer) }, status: 201
     end
 
     private

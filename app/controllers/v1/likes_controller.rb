@@ -3,23 +3,15 @@ module V1
     skip_before_action :check_authenticate!, only: %i(index, create, destroy), raise: false
 
     def index
-      # todo: フロントに返却するjsonの形はどのようなものがベストか考えよう。
-      # フロントの人が使いやすいように、またバックエンドの人も作りやすいように。直感的に作る？何かのルールを参考にする？
+      likes = Like.where(task_id: params[:task_id])
+      like_count = likes.count
 
-      # todo: API側でcountしてから返すのではなく、front側で配列.lengthで長さを取得した方が良いらしい(検証)。
+      user_like = likes.find_by(user_id: params[:current_user_id])
+      task_id = user_like&.task_id
+      liked_user_id = user_like&.user_id
+      like_id = user_like&.id
 
-      @like = Like.find_by(user_id: params[:current_user_id], task_id: params[:task_id])
-      if @like.present?
-        @task_id = @like.task_id
-      end
-
-      @like_count = Like.where(task_id: params[:task_id]).count
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
-      end
-      render json: { task_id: @task_id, like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
+      render json: { task_id: task_id, like_count: like_count, liked_user_id: liked_user_id, like_id: like_id }
     end
 
     def show

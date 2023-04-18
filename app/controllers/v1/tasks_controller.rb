@@ -3,8 +3,8 @@ module V1
     # skip_before_action :check_authenticate!, only: %i(index), raise: false
 
     def index
-      @task = Task.all
-      render json: @task, include: [:user]
+      tasks = Task.includes(:user).all
+      render json: tasks, include: [:user]
     end
 
     def show
