@@ -14,8 +14,7 @@ class Search < ApplicationRecord
         return { tasks: tasks }
       else
         tasks = Task.where('title LIKE ?', '%'+contents+'%')
-        task_users = tasks.map(&:user)
-        return { tasks: tasks, task_users: task_users }
+        return { tasks: tasks }
       end
     end
   end

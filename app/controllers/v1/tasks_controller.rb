@@ -1,43 +1,37 @@
 module V1
   class TasksController < ApiController
-    # skip_before_action :check_authenticate!, only: %i(index), raise: false
-
     def index
-      tasks = Task.includes(:user).all
-      render json: tasks, include: [:user]
+      tasks = Task.all.order('tasks.id DESC')
+      tasks_data = ActiveModel::Serializer::CollectionSerializer.new(tasks, each_serializer: TaskSerializer).as_json
+      tasks_data.each do |task|
+        task_user = User.find(task[:user_id])
+        task[:user] = UserSerializer.new(task_user).as_json
+      end
+      render json: { tasks: tasks_data }, status: 200
     end
 
     def show
-      @task = Task.find(params[:id])
-      render json: @task, include: [:user]
+      task = Task.find(params[:id])
+      task_data = TaskSerializer.new(task).as_json
+      task_user = User.find(task.user_id)
+      task_data[:user] = UserSerializer.new(task_user).as_json
+      render json: task_data, status: 200
     end
 
     def create
-      @task = Task.new(task_params)
-      @user = User.find_by(firebase_id: params[:user_id])
-      @task.user_id = @user.id
-
-      if @task.save
-        render json: @task, status: 201
-      else
-        render json: @task.errors, status: 500
-      end
+      task = Task.new(task_params)
+      task.user_id = User.find_by(firebase_id: params[:user_id]).id
+      render json: {}, status: 201 if task.save
     end
 
     def update
-      @task = Task.find(params[:id])
-      if @task.update(task_params)
-        render json: @task, status: 201
-      end
+      task = Task.find(params[:id])
+      render json: {}, status: 201 if task.update(task_params)
     end
 
     def destroy
-      @task = Task.find(params[:id])
-      if @task.destroy
-        head :no_content, status: :ok
-      else
-        render json: @task.errors, status: :unprocessable_entity
-      end
+      task = Task.find(params[:id])
+      head :no_content, status: 204 if task.destroy
     end
 
     private

@@ -9,18 +9,13 @@ module V1
       serialized_results = {}
 
       if results[:users].present?
-        serialized_results[:users] = ActiveModelSerializers::SerializableResource.new(results[:users], each_serializer: UserSerializer)
+        serialized_results[:users] = ActiveModelSerializers::SerializableResource.new(results[:users].order('users.id DESC'), each_serializer: UserSerializer)
       end
-
       if results[:tasks].present?
-        serialized_results[:tasks] = ActiveModelSerializers::SerializableResource.new(results[:tasks], each_serializer: TaskSerializer)
+        serialized_results[:tasks] = ActiveModelSerializers::SerializableResource.new(results[:tasks].order('tasks.id DESC'), each_serializer: TaskSerializer, user: true)
       end
 
-      if results[:task_users].present?
-        serialized_results[:task_users] = ActiveModelSerializers::SerializableResource.new(results[:task_users], each_serializer: UserSerializer)
-      end
-
-      render json: { results: serialized_results }
+      render json: serialized_results, status: 200
     end
   end
 end

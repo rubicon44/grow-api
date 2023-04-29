@@ -1,55 +1,28 @@
 module V1
   class LikesController < ApiController
-    skip_before_action :check_authenticate!, only: %i(index, create, destroy), raise: false
-
     def index
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
-
-      user_like = likes.find_by(user_id: params[:current_user_id])
-      task_id = user_like&.task_id
-      liked_user_id = user_like&.user_id
-      like_id = user_like&.id
-
-      render json: { task_id: task_id, like_count: like_count, liked_user_id: liked_user_id, like_id: like_id }
-    end
-
-    def show
+      likes_data = ActiveModel::Serializer::CollectionSerializer.new(likes, each_serializer: LikeSerializer).as_json
+      render json: { likes: likes_data, like_count: like_count }, status: 200
     end
 
     def create
-      @task = Task.find(params[:task_id])
-      @task_id = @task.id
-      @current_user = User.find(params[:current_user_id])
-      @current_user.like(@task)
+      current_user = User.find(params[:current_user_id])
+      task = Task.find(params[:task_id])
+      current_user.like(task)
 
-      @like_count = Like.count(params[:task_id])
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
-      end
+      noti_task = Task.find(params[:task_id])
+      noti_task.create_notification_like!(current_user)
 
-      # like notification(Not render this)
-      @noti_task = Task.find(params[:task_id])
-      @current_user = User.find(params[:current_user_id])
-      @noti_task.create_notification_like!(@current_user)
-
-      render json: { task_id: @task_id, like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
+      render json: {}, status: 201
     end
 
     def destroy
-      @task = Task.find(params[:task_id])
-      @current_user = User.find(params[:current_user_id])
-      @current_user.unlike(@task)
-
-      @like_count = Like.count(params[:task_id])
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
-      end
-      render json: { like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
+      current_user = User.find(params[:current_user_id])
+      task = Task.find(params[:task_id])
+      current_user.unlike(task)
+      head :no_content, status: 204
     end
 
     private
