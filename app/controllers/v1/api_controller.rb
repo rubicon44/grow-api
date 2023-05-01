@@ -11,9 +11,9 @@ module V1
     def check_authenticate!
       token = request.headers["Authorization"]
       begin
-        @decoded = JsonWebToken.decode(token)
-        @current_user = User.find_by(email: @decoded[:user_email])
-        return @current_user
+        decoded = JsonWebToken.decode(token)
+        current_user = User.find_by(email: decoded[:user_email])
+        return current_user
       rescue ActiveRecord::RecordNotFound => e
         render json: {errors: e.message}, status: :unauthorized
       rescue JWT::DecodeError => e
@@ -28,10 +28,6 @@ module V1
 
     def render_422(errors)
       render json: { errors: errors }, status: 422
-    end
-
-    def render_404
-      render json: { error: 'Record not found' }, status: 404
     end
 
     def render_404(errors)

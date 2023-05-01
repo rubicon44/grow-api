@@ -15,12 +15,12 @@ module V1
         email = info["email"] rescue nil
 
         if email != nil
-          @user = User.find_by(email: email)
-          return render json: { error: "このメールアドレスが見つかりません。" }, status: 422 if @user.blank?
-          @user.update(firebase_id: info["localId"])
+          user = User.find_by(email: email)
+          return render json: { error: "このメールアドレスが見つかりません。" }, status: 422 if user.blank?
+          user.update(firebase_id: info["localId"])
           time = Time.now + 24.hours.to_i
-          token = JsonWebToken.encode({user_email: @user.email}, Settings.jwt.time_exp.hours.from_now, Settings.jwt.alg)
-          render json: {token: token, user: @user.attributes.except("password_digest"), exp: time.strftime("%m-%d-%Y %H:%M")}, status: :ok
+          token = JsonWebToken.encode({user_email: user.email}, Settings.jwt.time_exp.hours.from_now, Settings.jwt.alg)
+          render json: {token: token, user: user.attributes.except("password_digest"), exp: time.strftime("%m-%d-%Y %H:%M")}, status: :ok
         end
       end
     end
