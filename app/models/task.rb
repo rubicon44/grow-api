@@ -9,7 +9,9 @@ class Task < ApplicationRecord
   has_many :liked_users, through: :likes, source: :user
   has_many :notifications, dependent: :destroy
 
+  # todo: titleの長さを制限するか検討
   validates :title, presence: true
+  validate :check_start_date_is_before_end_date
 
   def create_notification_like!(current_user)
     # すでに「いいね」されているか検索(いいねされていない場合のみ、通知レコードを作成)
@@ -32,7 +34,20 @@ class Task < ApplicationRecord
   end
 
   def set_default_task_dates
-    self.start_date = Date.current.to_s if start_date.blank?
-    self.end_date = Date.tomorrow.to_s if end_date.blank?
+    if start_date.blank? && end_date.present?
+      self.start_date = (Date.parse(end_date) - 1.day).to_s
+    elsif end_date.blank? && start_date.present?
+      self.end_date = (Date.parse(start_date) + 1.day).to_s
+    elsif start_date.blank? && end_date.blank?
+      self.start_date = Date.current.to_s
+      self.end_date = (Date.current + 1.day).to_s
+    end
+  end
+
+  def check_start_date_is_before_end_date
+    if start_date.present? && end_date.present? && end_date < start_date
+      errors.add(:end_date, " must be after start date")
+      raise ActiveRecord::RecordInvalid.new(self)
+    end
   end
 end

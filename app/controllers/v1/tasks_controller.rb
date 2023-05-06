@@ -1,5 +1,7 @@
 module V1
+  # todo: serializerロジックを「app/serializers/」以下ファイル内に移行
   class TasksController < ApiController
+    before_action :require_task_owner, only: [:update, :destroy]
     def index
       tasks = Task.all.order('tasks.id DESC')
       tasks_data = ActiveModel::Serializer::CollectionSerializer.new(tasks, each_serializer: TaskSerializer).as_json
@@ -20,13 +22,13 @@ module V1
 
     def create
       task = Task.new(task_params)
-      task.user_id = User.find_by(firebase_id: params[:user_id]).id
-      render json: {}, status: 201 if task.save
+      task.user_id = params[:user_id]
+      render json: {}, status: 204 if task.save
     end
 
     def update
       task = Task.find(params[:id])
-      render json: {}, status: 201 if task.update(task_params)
+      render json: {}, status: 204 if task.update(task_params)
     end
 
     def destroy
@@ -38,6 +40,14 @@ module V1
 
     def task_params
       params.require(:task).permit(:title, :content, :status, :start_date, :end_date, :user_id)
+    end
+
+    def require_task_owner
+      task = Task.find(params[:id])
+      current_user_id = params[:current_user_id]
+      unless task.user_id == current_user_id
+        render json: { errors: "You are not authorized to update this task" }, status: 403
+      end
     end
   end
 end

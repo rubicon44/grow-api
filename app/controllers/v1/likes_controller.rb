@@ -15,7 +15,7 @@ module V1
       noti_task = Task.find(params[:task_id])
       noti_task.create_notification_like!(current_user)
 
-      render json: {}, status: 201
+      render json: {}, status: 204
     end
 
     def destroy

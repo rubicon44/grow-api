@@ -1,6 +1,7 @@
 module V1
   class UsersController < ApiController
     skip_before_action :check_authenticate!, only: %i(create), raise: false
+    before_action :require_user_owner, only: [:update]
 
     # def index
     #   users = User.all
@@ -30,12 +31,12 @@ module V1
 
     def create
       user = User.new(params_user_create)
-      render json: {}, status: 201 if user.save
+      render json: {}, status: 204 if user.save
     end
 
     def update
       user = User.find_by(username: params[:username])
-      render json: {}, status: 201 if user.update(params_user_update)
+      render json: {}, status: 204 if user.update(params_user_update)
     end
 
     # todo: 追加予定
@@ -49,6 +50,14 @@ module V1
 
     def params_user_update
       params.require(:user).permit(:nickname, :username, :bio)
+    end
+
+    def require_user_owner
+      user = User.find_by(username: params[:username])
+      current_user_id = params[:current_user_id]
+      unless user.id == current_user_id
+        render json: { errors: "You are not authorized to update this user" }, status: :forbidden
+      end
     end
   end
 end

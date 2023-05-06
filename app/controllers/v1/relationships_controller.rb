@@ -8,7 +8,7 @@ module V1
       noti_user = User.find(params[:follower_id])
       noti_user.create_notification_follow!(current_user, noti_user)
 
-      render json: {}, status: 201
+      render json: {}, status: 204
     end
 
     def destroy
