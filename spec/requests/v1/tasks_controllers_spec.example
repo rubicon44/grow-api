@@ -1,7 +1,5 @@
 require 'rails_helper'
 
-# todo1: 「不正な値が渡されたとき「422」が返る」部分(バリデーション)のテストコード実装(create実装済、残り: update)
-# todo2: 「権限がないユーザーが他人のタスクを更新しようとしたとき「403」が返る」のテストコード実装
 # todo3: 「権限がないユーザーが他人のタスクを削除しようとしたとき「403」が返る」のテストコード実装
 # todo4: FactoryBotによる「let(:user)」等のテストデータを、それぞれのテストケースに追加
 # todo5: テストコード実行/修正
@@ -306,18 +304,17 @@ RSpec.describe V1::TasksController, type: :request do
       end
     end
 
-    # ## 権限がないユーザーが他人のタスクを更新しようとしたとき「403」が返る
-    # context 'when an unauthorized user update a task' do
-    #   it 'do not update a task & returns 403' do
-    #     another_user = create(:user)
-    #     another_user_headers = another_user.create_new_auth_token
-    #     put "/v1/tasks/#{task.id}", headers: another_user_headers, params: { task: { title: 'updated title', description: 'updated description' } }
-    #     expect(response).to have_http_status(403)
-    #     expect(response.body).to be_empty
-    #     expect(Task.first.title).to eq(task[:title])
-    #     expect(Task.first.description).to eq(task[:description])
-    #   end
-    # end
+    ## 権限がないユーザーが他人のタスクを更新しようとしたとき「403」が返る
+    context 'when an unauthorized user update a task' do
+      it 'do not update a task & returns 403' do
+        # 別のユーザーでログインする
+        login_as(create(:user, id: other_user_id))
+        # 別のユーザーのheader
+        put "/v1/tasks/#{task.id}", headers: headers, params: { task: { title: 'updated title' } }
+        expect(response).to have_http_status(403)
+        expect(task.reload.title).not_to eq('updated title')
+      end
+    end
   end
 
   describe 'DELETE #destroy' do
@@ -354,10 +351,17 @@ RSpec.describe V1::TasksController, type: :request do
       end
     end
 
-    # ## 権限がないユーザーが他人のタスクを削除しようとしたとき「403」が返る
-    # context 'when an unauthorized user delete a task' do
-    #   it 'do not delete a task & returns 403' do
-    #   end
-    # end
+    ## 権限がないユーザーが他人のタスクを削除しようとしたとき「403」が返る
+    context 'when an unauthorized user delete a task' do
+      it 'do not delete a task & returns 403' do
+        task = create(:task, user_id: current_user_id, title: 'Test Task')
+        # 別のユーザーでログインする
+        login_as(create(:user, id: other_user_id))
+        # 別のユーザーのheader
+        delete "/v1/tasks/#{task.id}", headers: headers
+        expect(response).to have_http_status(403)
+        expect(task.reload.title).to eq('Test Task')
+      end
+    end
   end
 end
