@@ -34,23 +34,23 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   # DatabaseCleaner
-  # config.before(:suite) do
-  #   DatabaseCleaner.strategy = :truncation
-  #   # DatabaseCleaner.clean_with(:truncation)
-  # end
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :truncation
+    # DatabaseCleaner.clean_with(:truncation)
+  end
 
-  # config.before(:each) do
-  #   DatabaseCleaner.strategy = :transaction
-  #   DatabaseCleaner.start
-  # end
+  config.before(:each) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.start
+  end
 
-  # config.after(:each) do
-  #   DatabaseCleaner.clean
-  # end
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
 
-  # config.before(:suite) do
-  #   FactoryBot.reload
-  # end
+  config.before(:suite) do
+    FactoryBot.reload
+  end
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
