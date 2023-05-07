@@ -1,81 +1,82 @@
 require 'rails_helper'
 
 # todo4: テストコード実行/修正、FactoryBotによる「let(:user)」等のテストデータを、それぞれのテストケースに追加
-## [完了]index、
+## [完了]index、show、
+## todo: 全てのテストを一気に通してみる(上記では、index, showと、個別のテストケースをテストしているだけ。)。
 
 # todo5: テストケースの抜け漏れ確認
 # todo6: 「入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)」を処理
 
 RSpec.describe V1::TasksController, type: :request do
   let(:user) { FactoryBot.create(:user) }
-  let(:task) { FactoryBot.create(:task, user: user) }
+  # let(:task) { FactoryBot.create(:task, user: user) }
   let(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
 
-  describe 'GET #index' do
-    # ログインしていないとき、タスクリストは見れず「401」が返る
+  # describe 'GET #index' do
+  #   # ログインしていないとき、タスクリストは見れず「401」が返る
+  #   context 'not logged in' do
+  #     it 'returns 401' do
+  #       get '/v1/tasks'
+  #       expect(response).to have_http_status(401)
+  #       expect(response.body).to eq("{\"errors\":\"Nil JSON web token\"}")
+  #     end
+  #   end
+
+  #   # ログインしているとき
+  #   ## タスクリストが存在するとき「タスクリスト」と「200」が返る
+  #   let!(:task1) { FactoryBot.create(:task, user: user, title: 'test_task1') }
+  #   let!(:task2) { FactoryBot.create(:task, user: user, title: 'test_task2') }
+  #   context 'when tasks exist' do
+  #     it 'returns a list of tasks & 200' do
+  #       get '/v1/tasks', headers: headers
+  #       expect(response).to have_http_status(200)
+  #       expect(response.body).to include(task1.title)
+  #       expect(response.body).to include(task2.title)
+  #     end
+  #   end
+
+  #   ## タスクリストが存在しないとき「200」が返る(204や404は返さない)
+  #   context 'when tasks do not exist' do
+  #     it 'returns an empty list & 200' do
+  #       Task.destroy_all
+  #       get '/v1/tasks', headers: headers
+  #       expect(response).to have_http_status(200)
+  #       expect(response.body).to eq("{\"tasks\":[]}")
+  #     end
+  #   end
+  # end
+
+  describe 'GET #show' do
+    # ログインしていないとき、タスクは見れず「401」が返る
     context 'not logged in' do
       it 'returns 401' do
-        get '/v1/tasks'
+        get "/v1/tasks/#{task.id}"
         expect(response).to have_http_status(401)
         expect(response.body).to eq("{\"errors\":\"Nil JSON web token\"}")
       end
     end
 
     # ログインしているとき
-    ## タスクリストが存在するとき「タスクリスト」と「200」が返る
-    let!(:task1) { FactoryBot.create(:task, user: user, title: 'test_task1') }
-    let!(:task2) { FactoryBot.create(:task, user: user, title: 'test_task2') }
-    context 'when tasks exist' do
-      it 'returns a list of tasks & 200' do
-        get '/v1/tasks', headers: headers
+    ## タスクが存在するとき「タスク」と「200」が返る
+    let!(:task) { FactoryBot.create(:task, user: user, title: 'test_task_show1') }
+    context 'when task exist' do
+      it 'returns a task & 200' do
+        get "/v1/tasks/#{task.id}", headers: headers
         expect(response).to have_http_status(200)
-        expect(response.body).to include(task1.title)
-        expect(response.body).to include(task2.title)
+        expect(response.body).to include(task.title)
       end
     end
 
-    ## タスクリストが存在しないとき「200」が返る(204や404は返さない)
-    context 'when tasks do not exist' do
-      it 'returns an empty list & 200' do
+    ## タスクが存在しないとき「404」が返る
+    context 'when task do not exist' do
+      it 'returns an empty task & 404' do
         Task.destroy_all
-        get '/v1/tasks', headers: headers
-        expect(response).to have_http_status(200)
-        expect(response.body).to eq("{\"tasks\":[]}")
+        get "/v1/tasks/#{task.id}", headers: headers
+        expect(response).to have_http_status(404)
+        expect(response.body).to eq("{\"error\":\"Couldn't find Task with 'id'=#{task.id}\"}")
       end
     end
   end
-
-  # describe 'GET #show' do
-  #   # ログインしていないとき、タスクは見れず「401」が返る
-  #   context 'not logged in' do
-  #     it 'returns 401' do
-  #       get "/v1/tasks/#{task.id}"
-  #       expect(response).to have_http_status(401)
-  #       expect(response.body).to be_empty
-  #     end
-  #   end
-
-  #   # # ログインしているとき
-  #   # ## タスクが存在するとき「タスク」と「200」が返る
-  #   # context 'when task exist' do
-  #   #   it 'returns a task & 200' do
-  #   #     get "/v1/tasks/#{task.id}", headers: headers
-  #   #     expect(response).to have_http_status(200)
-  #   #     expect(response.body).to include(task.title)
-  #   #     expect(response.body).to include(task.description)
-  #   #   end
-  #   # end
-
-  #   # ## タスクが存在しないとき「404」が返る
-  #   # context 'when task do not exist' do
-  #   #   it 'returns an empty task & 404' do
-  #   #     Task.destroy_all
-  #   #     get "/v1/tasks/#{task.id}", headers: headers
-  #   #     expect(response).to have_http_status(404)
-  #   #     expect(response.body).to eq("[]")
-  #   #   end
-  #   # end
-  # end
 
   # describe 'POST #create' do
   #   # ログインしていないとき、タスクは作成できず「401」が返る
@@ -83,110 +84,110 @@ RSpec.describe V1::TasksController, type: :request do
   #     it 'returns 401' do
   #       post "/v1/tasks"
   #       expect(response).to have_http_status(401)
-  #       expect(response.body).to be_empty
+  #       expect(response.body).to eq("{\"errors\":\"Nil JSON web token\"}")
   #     end
   #   end
 
-  #   let(:valid_params) { { task: FactoryBot.create(:task, user_id: user.id).attributes } }
-  #   # ログインしているとき
-  #   ## 正しい値が渡されたとき、タスクが作成されて「204」が返る
-  #   context 'with valid params' do
-  #     it 'creates a new task & returns 204' do
-  #       # todo: 修正の可能性あり。
-  #       # post "/v1/tasks", params: { task: task }, headers: headers
-  #       post '/v1/tasks', params: valid_params, headers: headers
-  #       expect(response).to have_http_status(204)
-  #       expect(response.body).to be_empty
-  #       expect(Task.count).to eq(1)
-  #       expect(Task.first.title).to eq(task[:title])
-  #       expect(Task.first.description).to eq(task[:description])
-  #       expect(Task.first.user).to eq(user)
-  #     end
+    # # ログインしているとき
+    # ## 正しい値が渡されたとき、タスクが作成されて「204」が返る
+    # let(:valid_params) { { task: FactoryBot.create(:task, user_id: user.id).attributes } }
+    # context 'with valid params' do
+    #   it 'creates a new task & returns 204' do
+    #     # todo: 修正の可能性あり。
+    #     # post "/v1/tasks", params: { task: task }, headers: headers
+    #     post '/v1/tasks', params: valid_params, headers: headers
+    #     expect(response).to have_http_status(204)
+    #     expect(response.body).to be_empty
+    #     expect(Task.count).to eq(1)
+    #     expect(Task.first.title).to eq(task[:title])
+    #     expect(Task.first.description).to eq(task[:description])
+    #     expect(Task.first.user).to eq(user)
+    #   end
 
-  #     # 「content」が空の場合でも、タスクが作成され「204」が返る
-  #     it 'creates a new task when content is empty & returns 204' do
-  #       post "/v1/tasks", params: { task: attributes_for(:task, content: '') }
-  #       expect(response.status).to eq(204)
-  #     end
+    #   # 「content」が空の場合でも、タスクが作成され「204」が返る
+    #   it 'creates a new task when content is empty & returns 204' do
+    #     post "/v1/tasks", params: { task: attributes_for(:task, content: '') }
+    #     expect(response.status).to eq(204)
+    #   end
 
-  #     # 「start_date」もしくは「end_date」が空の場合でも、タスクが作成され「204」が返る
-  #     ## 「start_date」と「end_date」両方が空の場合、「start_date」に本日の日付、「end_date」に明日の日付が登録される
-  #     it 'creates a new task when both start_date and end_date are blank & returns 204' do
-  #       valid_attributes.delete(:start_date)
-  #       valid_attributes.delete(:end_date)
-  #       post "/v1/tasks", params: { task: valid_attributes }
-  #       expect(response).to have_http_status(204)
-  #       expect(Task.count).to eq(1)
-  #       expect(Task.first.start_date).to eq(Date.today.to_s)
-  #       expect(Task.first.end_date).to eq((Date.today + 1).to_s)
-  #     end
-  #     ## 「start_date」のみ空の場合、「end_date」の前日の日付が「start_date」に登録される
-  #     it 'creates a new task when start_date is blank and returns 204' do
-  #       valid_attributes.delete(:start_date)
-  #       valid_attributes[:end_date] = Date.today.to_s
-  #       post "/v1/tasks", params: { task: valid_attributes }
-  #       expect(response).to have_http_status(204)
-  #       expect(Task.count).to eq(1)
-  #       expect(Task.first.start_date).to eq((Date.today - 1).to_s)
-  #       expect(Task.first.end_date).to eq(Date.today.to_s)
-  #     end
-  #     ## 「end_date」のみ空の場合、「start_date」の次の日の日付が「end_date」に登録される
-  #     it 'creates a new task when end_date is blank and returns 204' do
-  #       valid_attributes.delete(:end_date)
-  #       valid_attributes[:start_date] = Date.today.to_s
-  #       post "/v1/tasks", params: { task: valid_attributes }
-  #       expect(response).to have_http_status(204)
-  #       expect(Task.count).to eq(1)
-  #       expect(Task.first.start_date).to eq(Date.today.to_s)
-  #       expect(Task.first.end_date).to eq((Date.today + 1).to_s)
-  #     end
-  #   end
+    #   # 「start_date」もしくは「end_date」が空の場合でも、タスクが作成され「204」が返る
+    #   ## 「start_date」と「end_date」両方が空の場合、「start_date」に本日の日付、「end_date」に明日の日付が登録される
+    #   it 'creates a new task when both start_date and end_date are blank & returns 204' do
+    #     valid_attributes.delete(:start_date)
+    #     valid_attributes.delete(:end_date)
+    #     post "/v1/tasks", params: { task: valid_attributes }
+    #     expect(response).to have_http_status(204)
+    #     expect(Task.count).to eq(1)
+    #     expect(Task.first.start_date).to eq(Date.today.to_s)
+    #     expect(Task.first.end_date).to eq((Date.today + 1).to_s)
+    #   end
+    #   ## 「start_date」のみ空の場合、「end_date」の前日の日付が「start_date」に登録される
+    #   it 'creates a new task when start_date is blank and returns 204' do
+    #     valid_attributes.delete(:start_date)
+    #     valid_attributes[:end_date] = Date.today.to_s
+    #     post "/v1/tasks", params: { task: valid_attributes }
+    #     expect(response).to have_http_status(204)
+    #     expect(Task.count).to eq(1)
+    #     expect(Task.first.start_date).to eq((Date.today - 1).to_s)
+    #     expect(Task.first.end_date).to eq(Date.today.to_s)
+    #   end
+    #   ## 「end_date」のみ空の場合、「start_date」の次の日の日付が「end_date」に登録される
+    #   it 'creates a new task when end_date is blank and returns 204' do
+    #     valid_attributes.delete(:end_date)
+    #     valid_attributes[:start_date] = Date.today.to_s
+    #     post "/v1/tasks", params: { task: valid_attributes }
+    #     expect(response).to have_http_status(204)
+    #     expect(Task.count).to eq(1)
+    #     expect(Task.first.start_date).to eq(Date.today.to_s)
+    #     expect(Task.first.end_date).to eq((Date.today + 1).to_s)
+    #   end
+    # end
 
-  #   ## 不正な値が渡されたとき「422」が返る
-  #   context 'with invalid params' do
-  #     # title
-  #     ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-  #     ## 入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)
-  #     ## 入力フォームに指定された文字数制限を超えた場合
-  #     it 'do not create a new task when title is too long & returns 422' do
-  #       task_params = attributes_for(:task, title: 'a'*256)
-  #       post "/v1/tasks", params: { task: task_params }, headers: headers
-  #       expect(response).to have_http_status(422)
-  #     end
+    # ## 不正な値が渡されたとき「422」が返る
+    # context 'with invalid params' do
+    #   # title
+    #   ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
+    #   ## 入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)
+    #   ## 入力フォームに指定された文字数制限を超えた場合
+    #   it 'do not create a new task when title is too long & returns 422' do
+    #     task_params = attributes_for(:task, title: 'a'*256)
+    #     post "/v1/tasks", params: { task: task_params }, headers: headers
+    #     expect(response).to have_http_status(422)
+    #   end
 
-  #     ## 入力フォームに指定された文字数制限を超えた場合
-  #     it 'do not create a new task when content exceeds the maximum length & returns 422' do
-  #       task_params = attributes_for(:task, content: 'a' * 1001)
-  #       post "/v1/tasks", params: { task: task_params }, headers: headers
-  #       expect(response).to have_http_status(422)
-  #     end
+    #   ## 入力フォームに指定された文字数制限を超えた場合
+    #   it 'do not create a new task when content exceeds the maximum length & returns 422' do
+    #     task_params = attributes_for(:task, content: 'a' * 1001)
+    #     post "/v1/tasks", params: { task: task_params }, headers: headers
+    #     expect(response).to have_http_status(422)
+    #   end
 
-  #     # status
-  #     ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-  #     ## 特定の数値(0, 1, 2, 3)以外の数値が入力フォームに指定された場合
-  #     it 'do not create a new task when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
-  #       post "/v1/tasks", params: { task: { content: 'test', status: 4 } }
-  #       expect(response).to have_http_status(422)
-  #     end
+    #   # status
+    #   ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
+    #   ## 特定の数値(0, 1, 2, 3)以外の数値が入力フォームに指定された場合
+    #   it 'do not create a new task when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
+    #     post "/v1/tasks", params: { task: { content: 'test', status: 4 } }
+    #     expect(response).to have_http_status(422)
+    #   end
 
-  #     # start_date、end_date
-  #     ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-  #     ## 入力フォームに指定されたフォーマットではない場合(0000-00-00)
-  #     it 'do not create a new task with invalid date format & returns 422' do
-  #       post "/v1/tasks", params: { task: { title: 'test task', start_date: '20230101', end_date: '20231231' } }
-  #       expect(response).to have_http_status(422)
-  #     end
-  #     ## 入力フォームに指定された文字数制限を超えた場合(それぞれ8桁)
-  #     it 'do not create a new task with start date and end date exceeding the character limit & returns 422' do
-  #       post "/v1/tasks", params: { task: { title: 'test task', start_date: '2023-01-011', end_date: '2023-12-311' } }
-  #       expect(response).to have_http_status(422)
-  #     end
-  #     ## start_dateよりもend_dateの日付が前の日付だった場合
-  #     it 'do not create a new task when end_date is before start_date & returns 422' do
-  #       post "/v1/tasks", params: { task: { title: 'test task', start_date: '2023-05-05', end_date: '2023-05-01' } }
-  #       expect(response.status).to eq 422
-  #     end
-  #   end
+    #   # start_date、end_date
+    #   ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
+    #   ## 入力フォームに指定されたフォーマットではない場合(0000-00-00)
+    #   it 'do not create a new task with invalid date format & returns 422' do
+    #     post "/v1/tasks", params: { task: { title: 'test task', start_date: '20230101', end_date: '20231231' } }
+    #     expect(response).to have_http_status(422)
+    #   end
+    #   ## 入力フォームに指定された文字数制限を超えた場合(それぞれ8桁)
+    #   it 'do not create a new task with start date and end date exceeding the character limit & returns 422' do
+    #     post "/v1/tasks", params: { task: { title: 'test task', start_date: '2023-01-011', end_date: '2023-12-311' } }
+    #     expect(response).to have_http_status(422)
+    #   end
+    #   ## start_dateよりもend_dateの日付が前の日付だった場合
+    #   it 'do not create a new task when end_date is before start_date & returns 422' do
+    #     post "/v1/tasks", params: { task: { title: 'test task', start_date: '2023-05-05', end_date: '2023-05-01' } }
+    #     expect(response.status).to eq 422
+    #   end
+    # end
   # end
 
   # describe 'PUT #update' do
@@ -195,7 +196,7 @@ RSpec.describe V1::TasksController, type: :request do
   #     it 'returns 401' do
   #       put "/v1/tasks/#{task.id}"
   #       expect(response).to have_http_status(401)
-  #       expect(response.body).to be_empty
+  #       expect(response.body).to eq("{\"errors\":\"Nil JSON web token\"}")
   #     end
   #   end
 
@@ -329,7 +330,7 @@ RSpec.describe V1::TasksController, type: :request do
   #     it 'returns 401' do
   #       delete "/v1/tasks/#{task.id}"
   #       expect(response).to have_http_status(401)
-  #       expect(response.body).to be_empty
+  #       expect(response.body).to eq("{\"errors\":\"Nil JSON web token\"}")
   #     end
   #   end
 
