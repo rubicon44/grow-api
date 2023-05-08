@@ -53,8 +53,14 @@ module V1
     def require_task_owner
       task = Task.find(params[:id])
       current_user_id = params[:current_user_id].to_i
-      unless task.user_id == current_user_id
-        render json: { errors: "You are not authorized to update this task" }, status: 403
+      if request.method == 'PUT'
+        unless task.user_id == current_user_id
+          render json: { errors: "You are not authorized to update this task" }, status: 403
+        end
+      elsif request.method == 'DELETE'
+        unless task.user_id == current_user_id
+          render json: { errors: "You are not authorized to delete this task" }, status: 403
+        end
       end
     end
   end
