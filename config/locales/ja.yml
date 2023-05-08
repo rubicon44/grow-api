@@ -6,6 +6,11 @@ ja:
         restrict_dependent_destroy:
           has_one: "%{record}が存在しているので削除できません"
           has_many: "%{record}が存在しているので削除できません"
+      models:
+        task:
+          attributes:
+            status:
+              inclusion: "には0、1、2、3以外の数値を入力しないでください"
   date:
     abbr_day_names:
     - 日

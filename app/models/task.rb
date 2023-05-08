@@ -1,16 +1,18 @@
 class Task < ApplicationRecord
+  before_validation :set_default_task_dates
   before_create :set_untitled_title
-  before_create :set_default_task_dates
   before_update :set_untitled_title
-  before_update :set_default_task_dates
 
   belongs_to :user
   has_many :likes, dependent: :destroy
   has_many :liked_users, through: :likes, source: :user
   has_many :notifications, dependent: :destroy
 
-  # todo: titleの長さを制限するか検討
-  validates :title, presence: true
+  validates :title, presence: true, length: { maximum: 255 }
+  validates :content, length: { maximum: 5000 }
+  validates :status, inclusion: { in: [0, 1, 2, 3] }
+  validates :start_date, format: { with: /\A\d{4}-\d{2}-\d{2}\z/ }
+  validates :end_date, format: { with: /\A\d{4}-\d{2}-\d{2}\z/ }
   validate :check_start_date_is_before_end_date
 
   def create_notification_like!(current_user)

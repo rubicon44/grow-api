@@ -23,12 +23,20 @@ module V1
     def create
       task = Task.new(task_params)
       task.user_id = params[:user_id]
-      render json: {}, status: 204 if task.save
+      if task.save
+        render json: {}, status: 204
+      else
+        render json: { errors: task.errors }, status: 422
+      end
     end
 
     def update
       task = Task.find(params[:id])
-      render json: {}, status: 204 if task.update(task_params)
+      if task.update(task_params)
+        render json: {}, status: 204
+      else
+        render json: { errors: task.errors }, status: 422
+      end
     end
 
     def destroy
@@ -44,7 +52,7 @@ module V1
 
     def require_task_owner
       task = Task.find(params[:id])
-      current_user_id = params[:current_user_id]
+      current_user_id = params[:current_user_id].to_i
       unless task.user_id == current_user_id
         render json: { errors: "You are not authorized to update this task" }, status: 403
       end

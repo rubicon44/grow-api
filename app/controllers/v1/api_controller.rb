@@ -23,7 +23,7 @@ module V1
 
     def render_500(errors)
       logger.error(errors) # 例外をログに出力
-      render json: { error: 'Internal Server Error' }, status: 500
+      render json: { errors: 'Internal Server Error' }, status: 500
     end
 
     def render_422(errors)
@@ -31,11 +31,11 @@ module V1
     end
 
     def render_404(errors)
-      render json: { error: errors }, status: 404
+      render json: { errors: errors }, status: 404
     end
 
     def render_400(errors)
-      render json: { error: errors }, status: 400
+      render json: { errors: errors }, status: 400
     end
   end
 end
