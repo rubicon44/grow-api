@@ -10,14 +10,18 @@ module V1
 
     def check_authenticate!
       token = request.headers["Authorization"]
+      if token.blank?
+        render json: { errors: "Authorization token is missing" }, status: :unauthorized
+        return
+      end
       begin
         decoded = JsonWebToken.decode(token)
         current_user = User.find_by(email: decoded[:user_email])
         return current_user
       rescue ActiveRecord::RecordNotFound => e
-        render json: {errors: e.message}, status: :unauthorized
+        render json: { errors: e.message }, status: :unauthorized
       rescue JWT::DecodeError => e
-        render json: {errors: e.message}, status: :unauthorized
+        render json: { errors: e.message }, status: :unauthorized
       end
     end
 

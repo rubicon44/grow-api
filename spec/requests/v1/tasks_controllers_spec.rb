@@ -21,7 +21,7 @@ RSpec.describe V1::TasksController, type: :request do
   # end
 
   describe 'POST #create' do
-    let(:valid_params) { { task: FactoryBot.create(:task, user_id: user.id).attributes } }
+    let!(:valid_params) { { task: FactoryBot.create(:task, user_id: user.id).attributes } }
     context 'with valid params' do
       it 'creates a new task' do
         expect {
