@@ -16,10 +16,6 @@ class User < ApplicationRecord
   has_many :visiteds, through: :passive_notifications, source: :visited
 
   # like function
-  def already_liked?(task)
-    likes.exists?(task_id: task.id)
-  end
-
   def like(task)
     likes.create(task_id: task.id)
   end
