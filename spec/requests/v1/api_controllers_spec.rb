@@ -1,5 +1,7 @@
 # require 'rails_helper'
 
+# 「認証トークンが無効な場合のテストケース」を実装する(check_authenticate!)。
+
 # RSpec.describe ApiController, type: :controller do
 #   controller do
 #     def index
