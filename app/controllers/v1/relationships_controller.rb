@@ -10,7 +10,7 @@ module V1
       end
 
       if Relationship.exists?(following_id: following_id, follower_id: follower_id)
-        render json: { errors: 'You are already following this user.' }, status: 422
+        render json: { errors: 'You are already following this user.' }, status: 409
         return
       end
 
@@ -47,7 +47,7 @@ module V1
       end
 
       if Relationship.where(following_id: following_id, follower_id: follower_id).empty?
-        render json: { errors: 'You are not unfollowing this user.' }, status: 422
+        render json: { errors: 'You are not unfollowing this user.' }, status: 409
         return
       end
 

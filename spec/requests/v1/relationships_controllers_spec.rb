@@ -78,7 +78,7 @@ RSpec.describe V1::RelationshipsController, type: :request do
       it 'does not allow following the same user multiple times' do
         params = { following_id: user1.id, follower_id: user2.id }
         post "/v1/users/#{user1.id}/relationships", params: params, headers: headers1
-        expect(response).to have_http_status(422)
+        expect(response).to have_http_status(409)
         expect(JSON.parse(response.body)['errors']).to eq('You are already following this user.')
       end
     end
@@ -143,7 +143,7 @@ RSpec.describe V1::RelationshipsController, type: :request do
       it 'does not allow unfollowing the same user multiple times' do
         params = { following_id: user1.id, follower_id: user2.id }
         delete "/v1/users/#{user1.id}/relationships", params: params, headers: headers1
-        expect(response).to have_http_status(422)
+        expect(response).to have_http_status(409)
         expect(JSON.parse(response.body)['errors']).to eq('You are not unfollowing this user.')
       end
     end
