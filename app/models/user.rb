@@ -25,10 +25,6 @@ class User < ApplicationRecord
   end
 
   # follow function
-  def already_followed?(user)
-    passive_relationships.find_by(following_id: user.id).present?
-  end
-
   def follow(user)
     active_relationships.create(follower_id: user.id)
   end
