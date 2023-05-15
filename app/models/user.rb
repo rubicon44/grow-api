@@ -16,10 +16,6 @@ class User < ApplicationRecord
   has_many :visiteds, through: :passive_notifications, source: :visited
 
   # like function
-  def already_liked?(task)
-    likes.exists?(task_id: task.id)
-  end
-
   def like(task)
     likes.create(task_id: task.id)
   end
@@ -29,10 +25,6 @@ class User < ApplicationRecord
   end
 
   # follow function
-  def already_followed?(user)
-    passive_relationships.find_by(following_id: user.id).present?
-  end
-
   def follow(user)
     active_relationships.create(follower_id: user.id)
   end
@@ -42,8 +34,8 @@ class User < ApplicationRecord
   end
 
   def create_notification_follow!(current_user, noti_user)
-    temp = Notification.where(['visitor_id = ? and visited_id = ? and action = ? ', current_user.id, noti_user.id, 'follow'])
-    return unless temp.blank?
+    # すでにフォローされているか検索(されていない場合のみ、通知レコードを作成)
+    return unless Notification.exists?(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').blank?
 
     notification = current_user.active_notifications.new(
       visited_id: noti_user.id,

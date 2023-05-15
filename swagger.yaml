@@ -1,0 +1,682 @@
+openapi: 3.0.0
+info:
+  title: grow
+  version: '1.0'
+servers: []
+
+paths:
+  /v1/users/sign_in:
+    post:
+      tags:
+        - signin
+      summary: Create a idToken
+      description: Returns a idToken
+      operationId: post-sign_in
+      parameters:
+        - name: idToken
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignIn'
+  /v1/users:
+    get:
+      tags:
+        - user
+      summary: Find all user
+      description: Returns all user
+      operationId: get-users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        '404':
+          description: Users not found
+      security:
+        - ApiKeyAuth: []
+    post:
+      tags:
+        - user
+      summary: Create a new user
+      description: Create a new user
+      operationId: post-user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAfterCreate'
+  /v1/{username}:
+    get:
+      tags:
+        - user
+      summary: Find a user by username
+      description: Returns a single user
+      operationId: get-user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+      security:
+        - ApiKeyAuth: []
+    put:
+      tags:
+        - user
+      summary: Update an existing user
+      description: Update an existing user by username
+      operationId: update-user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+      security:
+        - ApiKeyAuth: []
+  /v1/tasks:
+    get:
+      tags:
+        - task
+      summary: Find tasks
+      description: Returns all tasks
+      operationId: get-tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tasks'
+        '404':
+          description: Tasks not found
+      security:
+        - ApiKeyAuth: []
+    post:
+      tags:
+        - task
+      summary: Create a new task
+      description: Create a new task
+      operationId: post-task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /v1/tasks/{id}:
+    get:
+      tags:
+        - task
+      summary: Find a task
+      description: Returns a task
+      operationId: get-task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+      security:
+        - ApiKeyAuth: []
+    put:
+      tags:
+        - task
+      summary: Update an existing task
+      description: Update an existing task by id
+      operationId: update-task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Update an existent task
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid id supplied
+        '404':
+          description: Task not found
+      security:
+        - ApiKeyAuth: []
+    delete:
+      tags:
+        - task
+      summary: Deletes a task
+      description: delete a task
+      operationId: delete-task
+      parameters:
+        - name: id
+          in: path
+          description: Task id to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+      security:
+        - ApiKeyAuth: []
+  /v1/tasks/{task_id}/likes:
+    get:
+      tags:
+        - like
+      summary: Find likes
+      description: Returns likes
+      operationId: get-likes
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Likes'
+        '404':
+          description: Likes not found
+      security:
+        - ApiKeyAuth: []
+    post:
+      tags:
+        - like
+      summary: Create a new like
+      description: Create a new like
+      operationId: post-like
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Like'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Like'
+  /v1/tasks/{task_id}/likes{id}:
+    delete:
+      tags:
+        - like
+      summary: Deletes a like
+      description: delete a like
+      operationId: delete-like
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          description: Like id to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+      security:
+        - ApiKeyAuth: []
+  /v1/users/{user_id}/relationships:
+    post:
+      tags:
+        - relationship
+      summary: Create a new relationship
+      description: Create a new relationship
+      operationId: post-relationship
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Relationship'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Relationship'
+    delete:
+      tags:
+        - relationship
+      summary: Deletes a relationship
+      description: delete a relationship
+      operationId: delete-relationship
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+      security:
+        - ApiKeyAuth: []
+  /v1/users/{id}/followings:
+    get:
+      tags:
+        - relationship
+      summary: Find followings
+      description: Returns followings
+      operationId: get-followings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Relationships'
+        '404':
+          description: Followings not found
+      security:
+        - ApiKeyAuth: []
+  /v1/users/{id}/followers:
+     get:
+      tags:
+        - relationship
+      summary: Find followers
+      description: Returns followers
+      operationId: get-followers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Relationships'
+        '404':
+          description: Followers not found
+      security:
+        - ApiKeyAuth: []
+  /v1/notifications:
+    get:
+      tags:
+        - notification
+      summary: Find notifications
+      description: Returns notifications
+      operationId: get-notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notifications'
+        '404':
+          description: Notifications not found
+      security:
+        - ApiKeyAuth: []
+    # post:
+  /v1/searches:
+    get:
+      tags:
+        - search
+      summary: Search value
+      description: Returns search result
+      operationId: get-search-result
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                # type: array
+                # items:
+                  $ref: '#/components/schemas/Tasks'
+                  # Not supported multiple $ref in Swagger.
+                  # $ref: '#/components/schemas/Users'
+        '404':
+          description: Searches not found
+      security:
+        - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    UserSignIn:
+      title: UserSignIn
+      type: object
+      properties:
+        token:
+          type: string
+          example: 1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP
+        user:
+          allOf:
+            - type: object
+            - $ref: '#/components/schemas/User'
+    User:
+      title: User
+      type: object
+      description: ユーザー
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: abc@abc.com
+        username:
+          type: string
+          example: 山本 太郎
+        nickname:
+          type: string
+          example: たろう
+        bio:
+          type: string
+          example: 自己紹介文が入ります。自己紹介文が入ります。
+        firebase_id:
+          type: string
+          example: 0123456789
+      required:
+        - id
+        - email
+        - username
+        - nickname
+    Users:
+      title: User List
+      type: object
+      description: User List
+      properties:
+        # total_pages:
+        #   type: integer
+        #   example: 2
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    UserAfterCreate:
+      title: UserAfterCreate
+      type: object
+      description: UserAfterCreate
+      properties:
+        user:
+          allOf:
+            - type: object
+            - $ref: '#/components/schemas/User'
+        code_error_signup:
+          type: string
+          example: 2J8ASBK9SJHBJUIOHU8976SASAS9SA7AS
+    NewUser:
+      title: NewUser
+      type: object
+      description: 新規ユーザー
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: abc@abc.com
+        username:
+          type: string
+          example: 山田 二郎
+        nickname:
+          type: string
+          example: じろう
+        bio:
+          type: string
+          example: 自己紹介文が入ります。自己紹介文が入ります。
+        firebase_id:
+          type: string
+          example: 0123456789
+    Task:
+      title: Task
+      type: object
+      description: タスク
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: タスクのタイトルが入ります。タスクのタイトルが入ります。
+        content:
+          # text
+          type: string
+          example: タスクの内容が入ります。タスクの内容が入ります。
+        user_id:
+          # bigint
+          type: integer
+          example: 1
+        status:
+          type: integer
+          example: 0
+        start_date:
+          type: string
+          example: 2022-01-01
+        end_date:
+          type: string
+          example: 2022-12-31
+      required:
+        - id
+        - title
+        - user_id
+        - status
+        - start_date
+        - end_date
+    Tasks:
+      title: Task List
+      type: object
+      description: Task List
+      properties:
+        # total_pages:
+        #   type: integer
+        #   example: 2
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+    Like:
+      title: Like
+      type: object
+      description: いいね
+      properties:
+        id:
+          type: integer
+          example: 1
+        task_id:
+          # bigint
+          type: integer
+          example: 1
+        user_id:
+          # bigint
+          type: integer
+          example: 1
+      required:
+        - id
+        - task_id
+        - user_id
+    Likes:
+      title: Like List
+      type: object
+      description: Like List
+      properties:
+        # total_pages:
+        #   type: integer
+        #   example: 2
+        likes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Like'
+    Relationship:
+      title: Relationship
+      type: object
+      description: フォロー
+      properties:
+        id:
+          type: integer
+          example: 1
+        following_id:
+          # bigint
+          type: integer
+          example: 1
+        follower_id:
+          # bigint
+          type: integer
+          example: 1
+      required:
+        - id
+        - following_id
+        - follower_id
+    Relationships:
+      title: Relationship List
+      type: object
+      description: Relationship List
+      properties:
+        # total_pages:
+        #   type: integer
+        #   example: 2
+        relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/Relationship'
+    Notification:
+      title: Notification
+      type: object
+      description: 通知
+      properties:
+        id:
+          type: integer
+          example: 1
+        task_id:
+          # bigint
+          type: integer
+          example: 1
+        action:
+          type: string
+          example: like
+        checked:
+          # bigint
+          type: boolean
+          example: false
+        visitor_id:
+          # bigint
+          type: integer
+          example: 1
+        visited_id:
+          # bigint
+          type: integer
+          example: 2
+      required:
+        - id
+        - following_id
+        - follower_id
+    Notifications:
+      title: Notification List
+      type: object
+      description: Notification List
+      properties:
+        # total_pages:
+        #   type: integer
+        #   example: 2
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'

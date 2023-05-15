@@ -1,69 +1,78 @@
 module V1
   class LikesController < ApiController
-    skip_before_action :check_authenticate!, only: %i(index, create, destroy), raise: false
-
     def index
-      # todo: フロントに返却するjsonの形はどのようなものがベストか考えよう。
-      # フロントの人が使いやすいように、またバックエンドの人も作りやすいように。直感的に作る？何かのルールを参考にする？
+      task = Task.find_by(id: params[:task_id])
 
-      # todo: API側でcountしてから返すのではなく、front側で配列.lengthで長さを取得した方が良いらしい(検証)。
-
-      @like = Like.find_by(user_id: params[:current_user_id], task_id: params[:task_id])
-      if @like.present?
-        @task_id = @like.task_id
+      if task.nil?
+        render json: { error: 'Task not found' }, status: 404
+        return
       end
 
-      @like_count = Like.where(task_id: params[:task_id]).count
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
-      end
-      render json: { task_id: @task_id, like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
-    end
-
-    def show
+      likes = Like.where(task_id: params[:task_id])
+      like_count = likes.count
+      likes_data = ActiveModel::Serializer::CollectionSerializer.new(likes, each_serializer: LikeSerializer).as_json
+      render json: { likes: likes_data, like_count: like_count }, status: 200
     end
 
     def create
-      @task = Task.find(params[:task_id])
-      @task_id = @task.id
-      @current_user = User.find(params[:current_user_id])
-      @current_user.like(@task)
+      like_params = params_like_create
+      current_user = User.find_by(id: like_params[:current_user_id])
+      task = Task.find_by(id: like_params[:task_id])
 
-      @like_count = Like.count(params[:task_id])
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
+      if task.nil?
+        render json: { error: 'Task not found' }, status: 404
+        return
       end
 
-      # like notification(Not render this)
-      @noti_task = Task.find(params[:task_id])
-      @current_user = User.find(params[:current_user_id])
-      @noti_task.create_notification_like!(@current_user)
+      if current_user.nil? || task.nil?
+        render json: { error: 'Invalid parameters' }, status: 422
+        return
+      end
 
-      render json: { task_id: @task_id, like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
+      if current_user.likes.exists?(task_id: task.id)
+        render json: { error: 'Conflict: User has already liked this task' }, status: 409
+      else
+        current_user.like(task)
+        noti_task = Task.find(like_params[:task_id])
+        noti_task.create_notification_like!(current_user)
+        render json: {}, status: 204
+      end
     end
 
     def destroy
-      @task = Task.find(params[:task_id])
-      @current_user = User.find(params[:current_user_id])
-      @current_user.unlike(@task)
+      current_user = User.find_by(id: params[:current_user_id])
+      task = Task.find_by(id: params[:task_id])
+      likes = Like.where(task_id: params[:task_id])
 
-      @like_count = Like.count(params[:task_id])
-      @like = Like.find_by(user_id: params[:current_user_id])
-      if @like.present?
-        @liked_user_id = @like.user_id
-        @like_id = @like.id
+      if current_user.nil?
+        render json: { error: 'Invalid parameters' }, status: 422
+        return
       end
-      render json: { like_count: @like_count, liked_user_id: @liked_user_id, like_id: @like_id }
+
+      if task.nil?
+        render json: { error: 'Task not found' }, status: 404
+        return
+      end
+
+      if likes.empty?
+        render json: { error: 'Likes not found' }, status: 404
+        return
+      end
+
+      if likes.pluck(:user_id).exclude?(current_user.id)
+        render json: { error: "Cannot delete other user's likes" }, status: 403
+        return
+      end
+
+      current_user.unlike(task)
+      head :no_content, status: 204
     end
 
     private
 
+    # todo: delete時のstrong_parameterを作成するか検討。
     def params_like_create
-      params.require(:like).permit(:task_id, :current_user_id)
+      params.permit(:task_id, :current_user_id)
     end
   end
 end

@@ -1,49 +1,67 @@
 module V1
+  # todo: serializerロジックを「app/serializers/」以下ファイル内に移行
   class TasksController < ApiController
-    # skip_before_action :check_authenticate!, only: %i(index), raise: false
-
+    before_action :require_task_owner, only: [:update, :destroy]
     def index
-      @task = Task.all
-      render json: @task, include: [:user]
+      tasks = Task.all.order('tasks.id DESC')
+      tasks_data = ActiveModel::Serializer::CollectionSerializer.new(tasks, each_serializer: TaskSerializer).as_json
+      tasks_data.each do |task|
+        task_user = User.find(task[:user_id])
+        task[:user] = UserSerializer.new(task_user).as_json
+      end
+      render json: { tasks: tasks_data }, status: 200
     end
 
     def show
-      @task = Task.find(params[:id])
-      render json: @task, include: [:user]
+      task = Task.find(params[:id])
+      task_data = TaskSerializer.new(task).as_json
+      task_user = User.find(task.user_id)
+      task_data[:user] = UserSerializer.new(task_user).as_json
+      render json: task_data, status: 200
     end
 
     def create
-      @task = Task.new(task_params)
-      @user = User.find_by(firebase_id: params[:user_id])
-      @task.user_id = @user.id
-
-      if @task.save
-        render json: @task, status: 201
+      task = Task.new(task_params)
+      task.user_id = params[:user_id]
+      if task.save
+        render json: {}, status: 204
       else
-        render json: @task.errors, status: 500
+        render json: { errors: task.errors }, status: 422
       end
     end
 
     def update
-      @task = Task.find(params[:id])
-      if @task.update(task_params)
-        render json: @task, status: 201
+      task = Task.find(params[:id])
+      if task.update(task_params)
+        render json: {}, status: 204
+      else
+        render json: { errors: task.errors }, status: 422
       end
     end
 
     def destroy
-      @task = Task.find(params[:id])
-      if @task.destroy
-        head :no_content, status: :ok
-      else
-        render json: @task.errors, status: :unprocessable_entity
-      end
+      task = Task.find(params[:id])
+      head :no_content, status: 204 if task.destroy
     end
 
     private
 
     def task_params
       params.require(:task).permit(:title, :content, :status, :start_date, :end_date, :user_id)
+    end
+
+    def require_task_owner
+      task = Task.find(params[:id])
+      current_user_id = params[:current_user_id].to_i
+      if request.method == 'PUT'
+        unless task.user_id == current_user_id
+          render json: { errors: "You are not authorized to update this task" }, status: 403
+        end
+      elsif request.method == 'DELETE'
+        unless task.user_id == current_user_id
+          render json: { errors: "You are not authorized to delete this task" }, status: 403
+        end
+      end
     end
   end
 end
