@@ -6,7 +6,7 @@ module V1
       render json: {
         csrf_token: set_csrf_token,
         # "cookies['X-CSRF-Token']": "#{cookies['X-CSRF-Token']}"
-        }, status: 200
+      }, status: 200
     end
   end
 end

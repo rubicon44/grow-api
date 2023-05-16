@@ -7,7 +7,11 @@ class ApplicationController < ActionController::API
   private
 
   def set_csrf_token
-    cookies['X-CSRF-Token'] = form_authenticity_token
+    cookies['X-CSRF-Token'] = {
+      value: form_authenticity_token,
+      httponly: true
+    }
+    # cookies['X-CSRF-Token'] = form_authenticity_token
     # cookies['X-CSRF-Token'] = {
     #   domain: 'http://localhost:3001/', # 親ドメイン
     #   token: form_authenticity_token,
