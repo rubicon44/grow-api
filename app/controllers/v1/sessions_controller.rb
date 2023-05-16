@@ -4,6 +4,7 @@ module V1
 
     def create
       token = request.headers["idToken"]
+      # token = request.cookies['token']
       respon = Firebase.get_user_by_token(token)
       response = JSON.parse(respon)
 

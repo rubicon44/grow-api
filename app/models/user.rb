@@ -35,7 +35,7 @@ class User < ApplicationRecord
 
   def create_notification_follow!(current_user, noti_user)
     # すでにフォローされているか検索(されていない場合のみ、通知レコードを作成)
-    return unless Notification.exists?(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').blank?
+    return unless Notification.where(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').blank?
 
     notification = current_user.active_notifications.new(
       visited_id: noti_user.id,

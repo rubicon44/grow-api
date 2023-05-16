@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     resources :notifications, only: [:index]
     resources :searches, only: [:index]
 
+    get "/csrf_token", to: "csrf_tokens#new"
     get "/:username", to: "users#show"
     put "/:username", to: "users#update"
     get '/:username/followings', to: 'users#followings'
