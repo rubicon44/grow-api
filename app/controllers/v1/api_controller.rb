@@ -10,13 +10,7 @@ module V1
 
     def check_authenticate!
       token = request.cookies['token']
-      csrf_token = request.headers['X-CSRF-Token']
-
-      # render json: { errors: {
-      #   "csrf_token": csrf_token,
-      #   "cookies['X-CSRF-Token']": cookies['X-CSRF-Token']
-      #   } }
-      # return
+      # csrf_token = request.headers['X-CSRF-Token']
 
       if token.blank?
         render json: { errors: "Authorization token is missing" }, status: :unauthorized
@@ -26,15 +20,14 @@ module V1
         decoded = JsonWebToken.decode(token)
         current_user = User.find_by(email: decoded[:user_email])
 
-        origin_csrf_token = cookies['X-CSRF-Token']
-        unless csrf_token == origin_csrf_token
-          render json: {
-            errors: "Invalid CSRF token",
-            # "csrf_token": "#{csrf_token}",
-            # "origin_csrf_token": "#{origin_csrf_token}"
-            }, status: 401
-          return
-        end
+        # origin_csrf_token = cookies['X-CSRF-Token']
+        # unless csrf_token == origin_csrf_token
+        #   render json: {
+        #     errors: "Invalid CSRF token",
+        #     "csrf_token": "#{csrf_token}",
+        #     "origin_csrf_token": "#{origin_csrf_token}"
+        #     }, status: 401
+        # end
 
         return current_user
       rescue ActiveRecord::RecordNotFound => e
