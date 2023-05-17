@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   validates :username, uniqueness: true
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: 'は有効なメールアドレスの形式で入力してください' }
 
   has_many :tasks
   has_many :likes, dependent: :destroy
