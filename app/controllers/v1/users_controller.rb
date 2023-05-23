@@ -17,7 +17,7 @@ module V1
       else
         user_data = UserSerializer.new(user).as_json
         user_data[:tasks] = ActiveModel::Serializer::CollectionSerializer.new(user.tasks.order('tasks.id DESC'), each_serializer: TaskSerializer)
-        user_data[:liked_tasks] = ActiveModel::Serializer::CollectionSerializer.new(user.like_tasks.order('likes.id DESC'), each_serializer: TaskSerializer)
+        user_data[:liked_tasks] = ActiveModel::Serializer::CollectionSerializer.new(user.like_tasks.order('likes.id DESC'), each_serializer: TaskSerializer, user: true)
         render json: user_data, status: 200
       end
     end
