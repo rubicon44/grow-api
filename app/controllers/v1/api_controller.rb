@@ -3,11 +3,11 @@
 module V1
   class ApiController < ApplicationController
     before_action :check_authenticate!
-    rescue_from StandardError, with: :render_500
+    rescue_from StandardError, with: :render500
     rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_csrf_token
-    rescue_from ActiveRecord::RecordInvalid, with: :render_422
-    rescue_from ActiveRecord::RecordNotFound, with: :render_404
-    rescue_from ActionController::BadRequest, with: :render_400
+    rescue_from ActiveRecord::RecordInvalid, with: :render422
+    rescue_from ActiveRecord::RecordNotFound, with: :render404
+    rescue_from ActionController::BadRequest, with: :render400
 
     private
 
@@ -32,20 +32,20 @@ module V1
       render json: { errors: 'Invalid CSRF token' }, status: :unprocessable_entity
     end
 
-    def render_500(errors)
+    def render500(errors)
       logger.error(errors) # 例外をログに出力
       render json: { errors: 'Internal Server Error' }, status: :internal_server_error
     end
 
-    def render_422(errors)
+    def render422(errors)
       render json: { errors: errors }, status: :unprocessable_entity
     end
 
-    def render_404(errors)
+    def render404(errors)
       render json: { errors: errors }, status: :not_found
     end
 
-    def render_400(errors)
+    def render400(errors)
       render json: { errors: errors }, status: :bad_request
     end
   end

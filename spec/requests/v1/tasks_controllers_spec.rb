@@ -114,8 +114,8 @@ RSpec.describe V1::TasksController, type: :request do
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_create3')
-        expect(Task.last.start_date).to eq(Date.today.to_s)
-        expect(Task.last.end_date).to eq((Date.today + 1).to_s)
+        expect(Task.last.start_date).to eq(Time.zone.today.to_s)
+        expect(Task.last.end_date).to eq((Time.zone.today + 1).to_s)
       end
 
       let!(:valid_params4) do
@@ -259,8 +259,8 @@ RSpec.describe V1::TasksController, type: :request do
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_update3')
-        expect(Task.last.start_date).to eq(Date.today.to_s)
-        expect(Task.last.end_date).to eq((Date.today + 1).to_s)
+        expect(Task.last.start_date).to eq(Time.zone.today.to_s)
+        expect(Task.last.end_date).to eq((Time.zone.today + 1).to_s)
       end
 
       let!(:update_valid_params4) do
