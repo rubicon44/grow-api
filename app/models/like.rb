@@ -16,4 +16,8 @@ class Like < ApplicationRecord
   def self.user_already_liked?(current_user, task)
     current_user.likes.exists?(task_id: task.id)
   end
+
+  def self.user_owns_likes?(current_user, likes)
+    likes.pluck(:user_id).include?(current_user.id)
+  end
 end
