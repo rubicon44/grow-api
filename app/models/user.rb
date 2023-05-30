@@ -36,13 +36,12 @@ class User < ApplicationRecord
     active_relationships.find_by(follower_id: user.id).destroy
   end
 
-  def create_notification_follow!(current_user, noti_user)
-    # すでにフォローされているか検索(されていない場合のみ、通知レコードを作成)
-    return if Notification.where(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').present?
+  def create_notification_follow!(following_user, follower_user)
+    return if Notification.where(visitor_id: following_user.id, visited_id: follower_user.id, action: 'follow').present?
 
-    notification = current_user.active_notifications.new(
-      visited_id: noti_user.id,
-      visitor_id: current_user.id,
+    notification = following_user.active_notifications.new(
+      visited_id: follower_user.id,
+      visitor_id: following_user.id,
       action: 'follow'
     )
     notification.save if notification.valid?

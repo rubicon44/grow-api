@@ -5,10 +5,7 @@ module V1
     def index
       task = Task.find_by(id: params[:task_id])
 
-      if task.nil?
-        render json: { error: 'Task not found' }, status: :not_found
-        return
-      end
+      return render_task_not_found if task.nil?
 
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
