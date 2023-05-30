@@ -36,6 +36,7 @@ group :development, :test do
   gem 'database_cleaner', '~> 1.5', '>= 1.5.3'
   gem 'factory_bot_rails', '~> 6.2'
   gem 'rspec-rails', '~> 6.0', '>= 6.0.1'
+  gem 'rubocop-rails', '~> 2.19', '>= 2.19.1', require: false
   gem 'simplecov', '~> 0.22.0'
 end
 
