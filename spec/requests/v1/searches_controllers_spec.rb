@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe V1::SearchesController, type: :request do
-  let!(:user) { FactoryBot.create(:user, username: "test1") }
+  let!(:user) { FactoryBot.create(:user, username: 'test1') }
   let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
   let!(:task) { FactoryBot.create(:task, title: 'task1', user: user) }
 
@@ -9,7 +11,7 @@ RSpec.describe V1::SearchesController, type: :request do
     it 'returns 401' do
       get '/v1/searches', params: { model: 'user', contents: '', method: 'partial' }
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 

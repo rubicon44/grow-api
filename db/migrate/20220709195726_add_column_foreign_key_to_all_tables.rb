@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddColumnForeignKeyToAllTables < ActiveRecord::Migration[6.0]
   def change
     remove_column :relationships, :following_id, :bigint

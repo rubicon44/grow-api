@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SearchSerializer < ActiveModel::Serializer
   attribute :users, if: -> { object.users.present? }
   attribute :tasks, if: -> { object.tasks.present? }

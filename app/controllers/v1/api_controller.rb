@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class ApiController < ApplicationController
     before_action :check_authenticate!
@@ -13,14 +15,12 @@ module V1
       token = request.cookies['token']
 
       if token.blank?
-        render json: { errors: "Authorization token is missing" }, status: :unauthorized
+        render json: { errors: 'Authorization token is missing' }, status: :unauthorized
         return
       end
       begin
         decoded = JsonWebToken.decode(token)
-        current_user = User.find_by(email: decoded[:user_email])
-
-        return current_user
+        User.find_by(email: decoded[:user_email])
       rescue ActiveRecord::RecordNotFound => e
         render json: { errors: e.message }, status: :unauthorized
       rescue JWT::DecodeError => e
@@ -28,25 +28,25 @@ module V1
       end
     end
 
-    def handle_invalid_csrf_token(exception)
-      render json: { errors: 'Invalid CSRF token' }, status: 422
+    def handle_invalid_csrf_token(_exception)
+      render json: { errors: 'Invalid CSRF token' }, status: :unprocessable_entity
     end
 
     def render_500(errors)
       logger.error(errors) # 例外をログに出力
-      render json: { errors: 'Internal Server Error' }, status: 500
+      render json: { errors: 'Internal Server Error' }, status: :internal_server_error
     end
 
     def render_422(errors)
-      render json: { errors: errors }, status: 422
+      render json: { errors: errors }, status: :unprocessable_entity
     end
 
     def render_404(errors)
-      render json: { errors: errors }, status: 404
+      render json: { errors: errors }, status: :not_found
     end
 
     def render_400(errors)
-      render json: { errors: errors }, status: 400
+      render json: { errors: errors }, status: :bad_request
     end
   end
 end

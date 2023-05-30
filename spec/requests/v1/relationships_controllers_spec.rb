@@ -1,25 +1,27 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe V1::RelationshipsController, type: :request do
-  let!(:user1) { FactoryBot.create(:user, nickname: "user1", username: "user1", bio: 'user1') }
-  let!(:user2) { FactoryBot.create(:user, nickname: "user2", username: "user2", bio: 'user2') }
+  let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
+  let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
   let!(:headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let!(:headers2) { { 'Authorization' => JsonWebToken.encode(user_email: user2.email) } }
 
-  # todo: 「ログインが必要です。」等の文言を追加
+  # TODO: 「ログインが必要です。」等の文言を追加
   describe 'POST #create (not logged in)' do
     it 'returns 401' do
       params = { following_id: user1.id, follower_id: user2.id }
       post "/v1/users/#{user1.id}/relationships", params: params
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
-      post "/v1/users/nonexistent_user_id/relationships", params: params
+      post '/v1/users/nonexistent_user_id/relationships', params: params
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -35,7 +37,7 @@ RSpec.describe V1::RelationshipsController, type: :request do
     end
 
     context 'when retrieving follower list' do
-      let!(:user3) { FactoryBot.create(:user, nickname: "user3", username: "user3", bio: 'user3') }
+      let!(:user3) { FactoryBot.create(:user, nickname: 'user3', username: 'user3', bio: 'user3') }
       let!(:follow_relationship1) { FactoryBot.create(:relationship, following: user2, follower: user1) }
       let!(:follow_relationship2) { FactoryBot.create(:relationship, following: user3, follower: user1) }
       it 'returns the follower list in the correct order' do
@@ -44,13 +46,13 @@ RSpec.describe V1::RelationshipsController, type: :request do
 
         follower_list = JSON.parse(response.body)['followers']
         follower_usernames = follower_list.map { |follower| follower['username'] }
-        # todo: 順序を確認
+        # TODO: 順序を確認
         expect(follower_usernames).to eq([user3.username, user2.username])
       end
     end
 
     context 'when retrieving following list' do
-      let!(:user3) { FactoryBot.create(:user, nickname: "user3", username: "user3", bio: 'user3') }
+      let!(:user3) { FactoryBot.create(:user, nickname: 'user3', username: 'user3', bio: 'user3') }
       let!(:follow_relationship1) { FactoryBot.create(:relationship, following: user1, follower: user2) }
       let!(:follow_relationship2) { FactoryBot.create(:relationship, following: user1, follower: user3) }
       it 'returns the following list in the correct order' do
@@ -59,7 +61,7 @@ RSpec.describe V1::RelationshipsController, type: :request do
 
         following_list = JSON.parse(response.body)['followings']
         following_usernames = following_list.map { |following| following['username'] }
-        # todo: 順序を確認
+        # TODO: 順序を確認
         expect(following_usernames).to eq([user3.username, user2.username])
       end
     end
@@ -100,21 +102,21 @@ RSpec.describe V1::RelationshipsController, type: :request do
     end
   end
 
-  # todo: 「ログインが必要です。」等の文言を追加
+  # TODO: 「ログインが必要です。」等の文言を追加
   describe 'DELETE #destroy (not logged in)' do
     let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
     it 'returns 401' do
       params = { following_id: user1.id, follower_id: user2.id }
       delete "/v1/users/#{user1.id}/relationships", params: params
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
-      delete "/v1/users/nonexistent_user_id/relationships", params: params
+      delete '/v1/users/nonexistent_user_id/relationships', params: params
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 

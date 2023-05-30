@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # require 'rails_helper'
 
 # 「認証トークンが無効な場合のテストケース」を実装する(check_authenticate!)。

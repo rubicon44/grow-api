@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Task < ApplicationRecord
   before_validation :set_default_task_dates
   before_create :set_untitled_title
@@ -17,7 +19,8 @@ class Task < ApplicationRecord
 
   def create_notification_like!(current_user)
     # すでに「いいね」されているか検索(いいねされていない場合のみ、通知レコードを作成)
-    return unless Notification.where(visitor_id: current_user.id, visited_id: user_id, task_id: id, action: 'like').blank?
+    return if Notification.where(visitor_id: current_user.id, visited_id: user_id, task_id: id,
+                                 action: 'like').present?
 
     notification = current_user.active_notifications.new(
       task_id: id,
@@ -32,7 +35,7 @@ class Task < ApplicationRecord
   private
 
   def set_untitled_title
-    self.title = "無題" if title.blank?
+    self.title = '無題' if title.blank?
   end
 
   def set_default_task_dates
@@ -47,9 +50,9 @@ class Task < ApplicationRecord
   end
 
   def check_start_date_is_before_end_date
-    if start_date.present? && end_date.present? && end_date < start_date
-      errors.add(:end_date, " must be after start date")
-      raise ActiveRecord::RecordInvalid.new(self)
-    end
+    return unless start_date.present? && end_date.present? && end_date < start_date
+
+    errors.add(:end_date, ' must be after start date')
+    raise ActiveRecord::RecordInvalid, self
   end
 end
