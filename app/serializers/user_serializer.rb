@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 class UserSerializer < ActiveModel::Serializer
   attributes :id, :bio, :email, :nickname, :username, :firebase_id
 
-  def initialize(object, options={})
+  def initialize(object, options = {})
     super
     @firebase_id = options[:firebase_id]
   end

@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-# todo: 認証エラーの際は、401を返す(following時になっていない。)
+# TODO: 認証エラーの際は、401を返す(following時になっていない。)
 # todo: contextとitのテストケース文言を揃える
 
 RSpec.describe V1::UsersController, type: :request do
-  # todo: ユーザーを最初にまとめるか、それぞれのテストケースで作成するか検討する。
-  let!(:user1) { FactoryBot.create(:user, nickname: "user1", username: "user1", bio: 'user1') }
-  let!(:user2) { FactoryBot.create(:user, nickname: "user2", username: "user2", bio: 'user2') }
+  # TODO: ユーザーを最初にまとめるか、それぞれのテストケースで作成するか検討する。
+  let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
+  let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
   let!(:headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let!(:headers2) { { 'Authorization' => JsonWebToken.encode(user_email: user2.email) } }
   let!(:task1_by_user1) { FactoryBot.create(:task, title: 'task1_by_user1', user: user1) }
@@ -17,13 +19,13 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}"
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
-      get "/v1/nonexistent_user"
+      get '/v1/nonexistent_user'
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -69,9 +71,9 @@ RSpec.describe V1::UsersController, type: :request do
 
     context 'when the requested user does not exist' do
       it 'returns 404 error' do
-        get "/v1/nonexistent_user", headers: headers1
+        get '/v1/nonexistent_user', headers: headers1
         expect(response).to have_http_status(404)
-        expect(response.body).to eq("{\"errors\":\"User not found\"}")
+        expect(response.body).to eq('{"errors":"User not found"}')
       end
     end
   end
@@ -81,13 +83,13 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}/followings"
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
-      get "/v1/nonexistent_user/followings"
+      get '/v1/nonexistent_user/followings'
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -117,7 +119,7 @@ RSpec.describe V1::UsersController, type: :request do
     end
 
     context 'when user has no followings' do
-      let!(:user) { FactoryBot.create(:user, username: "user") }
+      let!(:user) { FactoryBot.create(:user, username: 'user') }
       let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       it 'returns 200 with an empty array' do
         get "/v1/#{user.username}/followings", headers: headers
@@ -130,7 +132,7 @@ RSpec.describe V1::UsersController, type: :request do
 
     context 'when attempting to get followings of a non-existing user' do
       it 'returns 404 error' do
-        get "/v1/non_existing_user/followings", headers: headers1
+        get '/v1/non_existing_user/followings', headers: headers1
         expect(response).to have_http_status(404)
       end
     end
@@ -141,13 +143,13 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}/followers"
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
-      get "/v1/nonexistent_user/followers"
+      get '/v1/nonexistent_user/followers'
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -177,7 +179,7 @@ RSpec.describe V1::UsersController, type: :request do
     end
 
     context 'when user has no followers' do
-      let!(:user) { FactoryBot.create(:user, username: "user") }
+      let!(:user) { FactoryBot.create(:user, username: 'user') }
       let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       it 'returns 200 with an empty array' do
         get "/v1/#{user.username}/followers", headers: headers
@@ -190,7 +192,7 @@ RSpec.describe V1::UsersController, type: :request do
 
     context 'when attempting to get followers of a non-existing user' do
       it 'returns 404 error' do
-        get "/v1/non_existing_user/followers", headers: headers1
+        get '/v1/non_existing_user/followers', headers: headers1
         expect(response).to have_http_status(404)
       end
     end
@@ -283,13 +285,13 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       put "/v1/#{user3.username}"
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
 
     it 'returns 401 error if the user does not exist' do
-      put "/v1/nonexistent_user"
+      put '/v1/nonexistent_user'
       expect(response).to have_http_status(401)
-      expect(response.body).to eq("{\"errors\":\"Authorization token is missing\"}")
+      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -352,13 +354,13 @@ RSpec.describe V1::UsersController, type: :request do
           current_user_id: user1.id
         }
 
-        put "/v1/nonexistent_user", params: user_params, headers: headers1
+        put '/v1/nonexistent_user', params: user_params, headers: headers1
         expect(response).to have_http_status(404)
-        expect(response.body).to eq("{\"errors\":\"User not found\"}")
+        expect(response.body).to eq('{"errors":"User not found"}')
       end
     end
   end
 
-  # todo: describe 'GET #destroy (not logged in)' do
+  # TODO: describe 'GET #destroy (not logged in)' do
   # todo: describe 'GET #destroy (logged in)' do
 end

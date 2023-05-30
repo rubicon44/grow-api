@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class NotificationsController < ApiController
     def index
@@ -11,18 +13,21 @@ module V1
       follow_visitors = []
       like_visitors = []
       notifications.each do |notification|
-        if notification.action == "follow"
+        if notification.action == 'follow'
           follow_visitors.push(notification.visitor)
-        elsif notification.action == "like" && notification.visitor_id != current_user.id
+        elsif notification.action == 'like' && notification.visitor_id != current_user.id
           like_visitors.push(notification.visitor)
         end
       end
 
       render json: {
-        follow_visitors: ActiveModel::Serializer::CollectionSerializer.new(follow_visitors, each_serializer: UserSerializer),
-        like_visitors: ActiveModel::Serializer::CollectionSerializer.new(like_visitors, each_serializer: UserSerializer),
-        notifications: ActiveModel::Serializer::CollectionSerializer.new(notifications, each_serializer: NotificationSerializer),
-      }, status: 200
+        follow_visitors: ActiveModel::Serializer::CollectionSerializer.new(follow_visitors,
+                                                                           each_serializer: UserSerializer),
+        like_visitors: ActiveModel::Serializer::CollectionSerializer.new(like_visitors,
+                                                                         each_serializer: UserSerializer),
+        notifications: ActiveModel::Serializer::CollectionSerializer.new(notifications,
+                                                                         each_serializer: NotificationSerializer)
+      }, status: :ok
     end
   end
 end

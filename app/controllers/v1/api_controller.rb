@@ -1,45 +1,54 @@
+# frozen_string_literal: true
+
 module V1
   class ApiController < ApplicationController
     before_action :check_authenticate!
-    rescue_from StandardError, with: :render_500
-    rescue_from ActiveRecord::RecordInvalid, with: :render_422
-    rescue_from ActiveRecord::RecordNotFound, with: :render_404
-    rescue_from ActionController::BadRequest, with: :render_400
+    rescue_from StandardError, with: :render500
+    rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_csrf_token
+    rescue_from ActiveRecord::RecordInvalid, with: :render422
+    rescue_from ActiveRecord::RecordNotFound, with: :render404
+    rescue_from ActionController::BadRequest, with: :render400
 
     private
 
     def check_authenticate!
-      token = request.headers["Authorization"]
-      if token.blank?
-        render json: { errors: "Authorization token is missing" }, status: :unauthorized
-        return
-      end
+      token = request.cookies['token']
+
+      return render_unauthorized('Authorization token is missing') if token.blank?
+
       begin
         decoded = JsonWebToken.decode(token)
-        current_user = User.find_by(email: decoded[:user_email])
-        return current_user
+        User.find_by(email: decoded[:user_email])
       rescue ActiveRecord::RecordNotFound => e
-        render json: { errors: e.message }, status: :unauthorized
+        render_unauthorized(e.message)
       rescue JWT::DecodeError => e
-        render json: { errors: e.message }, status: :unauthorized
+        render_unauthorized(e.message)
       end
     end
 
-    def render_500(errors)
+    def render_unauthorized(errors)
+      render json: { errors: errors }, status: :unauthorized
+    end
+
+    def handle_invalid_csrf_token(_exception)
+      render json: { errors: 'Invalid CSRF token' }, status: :unprocessable_entity
+    end
+
+    def render500(errors)
       logger.error(errors) # 例外をログに出力
-      render json: { errors: 'Internal Server Error' }, status: 500
+      render json: { errors: 'Internal Server Error' }, status: :internal_server_error
     end
 
-    def render_422(errors)
-      render json: { errors: errors }, status: 422
+    def render422(errors)
+      render json: { errors: errors }, status: :unprocessable_entity
     end
 
-    def render_404(errors)
-      render json: { errors: errors }, status: 404
+    def render404(errors)
+      render json: { errors: errors }, status: :not_found
     end
 
-    def render_400(errors)
-      render json: { errors: errors }, status: 400
+    def render400(errors)
+      render json: { errors: errors }, status: :bad_request
     end
   end
 end

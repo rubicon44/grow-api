@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   validates :username, uniqueness: true
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: 'は有効なメールアドレスの形式で入力してください' }
 
   has_many :tasks
   has_many :likes, dependent: :destroy
@@ -35,7 +38,7 @@ class User < ApplicationRecord
 
   def create_notification_follow!(current_user, noti_user)
     # すでにフォローされているか検索(されていない場合のみ、通知レコードを作成)
-    return unless Notification.exists?(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').blank?
+    return if Notification.where(visitor_id: current_user.id, visited_id: noti_user.id, action: 'follow').present?
 
     notification = current_user.active_notifications.new(
       visited_id: noti_user.id,

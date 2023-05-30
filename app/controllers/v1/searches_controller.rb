@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class SearchesController < ApiController
     def index
@@ -9,13 +11,17 @@ module V1
       serialized_results = {}
 
       if results[:users].present?
-        serialized_results[:users] = ActiveModelSerializers::SerializableResource.new(results[:users].order('users.id DESC'), each_serializer: UserSerializer)
+        serialized_results[:users] =
+          ActiveModelSerializers::SerializableResource.new(results[:users].order('users.id DESC'),
+                                                           each_serializer: UserSerializer)
       end
       if results[:tasks].present?
-        serialized_results[:tasks] = ActiveModelSerializers::SerializableResource.new(results[:tasks].order('tasks.id DESC'), each_serializer: TaskSerializer, user: true)
+        serialized_results[:tasks] =
+          ActiveModelSerializers::SerializableResource.new(results[:tasks].order('tasks.id DESC'),
+                                                           each_serializer: TaskSerializer, user: true)
       end
 
-      render json: serialized_results, status: 200
+      render json: serialized_results, status: :ok
     end
   end
 end

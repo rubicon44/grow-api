@@ -1,21 +1,21 @@
+# frozen_string_literal: true
+
 class Search < ApplicationRecord
   def self.search(model, contents, method)
     if model == 'user'
-      if method == 'perfect'
-        users = User.where(username: contents)
-        return { users: users }
-      else
-        users = User.where('username LIKE ?', '%'+contents+'%')
-        return { users: users }
-      end
+      users = if method == 'perfect'
+                User.where(username: contents)
+              else
+                User.where('username LIKE ?', "%#{contents}%")
+              end
+      { users: users }
     elsif model == 'task'
-      if method == 'perfect'
-        tasks = Task.where('title LIKE ?', contents).or(Task.where('content LIKE ?', contents))
-        return { tasks: tasks }
-      else
-        tasks = Task.where('title LIKE ?', '%'+contents+'%')
-        return { tasks: tasks }
-      end
+      tasks = if method == 'perfect'
+                Task.where('title LIKE ?', contents).or(Task.where('content LIKE ?', contents))
+              else
+                Task.where('title LIKE ?', "%#{contents}%")
+              end
+      { tasks: tasks }
     end
   end
 end

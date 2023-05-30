@@ -1,17 +1,19 @@
+# frozen_string_literal: true
+
 module V1
   class LikesController < ApiController
     def index
       task = Task.find_by(id: params[:task_id])
 
       if task.nil?
-        render json: { error: 'Task not found' }, status: 404
+        render json: { error: 'Task not found' }, status: :not_found
         return
       end
 
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
       likes_data = ActiveModel::Serializer::CollectionSerializer.new(likes, each_serializer: LikeSerializer).as_json
-      render json: { likes: likes_data, like_count: like_count }, status: 200
+      render json: { likes: likes_data, like_count: like_count }, status: :ok
     end
 
     def create
@@ -19,24 +21,12 @@ module V1
       current_user = User.find_by(id: like_params[:current_user_id])
       task = Task.find_by(id: like_params[:task_id])
 
-      if task.nil?
-        render json: { error: 'Task not found' }, status: 404
-        return
-      end
+      return render_task_not_found if task.nil?
+      return render_invalid_parameters if current_user.nil? || task.nil?
+      return render_user_already_liked if Like.user_already_liked?(current_user, task)
 
-      if current_user.nil? || task.nil?
-        render json: { error: 'Invalid parameters' }, status: 422
-        return
-      end
-
-      if current_user.likes.exists?(task_id: task.id)
-        render json: { error: 'Conflict: User has already liked this task' }, status: 409
-      else
-        current_user.like(task)
-        noti_task = Task.find(like_params[:task_id])
-        noti_task.create_notification_like!(current_user)
-        render json: {}, status: 204
-      end
+      Like.create_like_and_notification(current_user, task)
+      render_no_content
     end
 
     def destroy
@@ -45,22 +35,22 @@ module V1
       likes = Like.where(task_id: params[:task_id])
 
       if current_user.nil?
-        render json: { error: 'Invalid parameters' }, status: 422
+        render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
         return
       end
 
       if task.nil?
-        render json: { error: 'Task not found' }, status: 404
+        render json: { error: 'Task not found' }, status: :not_found
         return
       end
 
       if likes.empty?
-        render json: { error: 'Likes not found' }, status: 404
+        render json: { error: 'Likes not found' }, status: :not_found
         return
       end
 
       if likes.pluck(:user_id).exclude?(current_user.id)
-        render json: { error: "Cannot delete other user's likes" }, status: 403
+        render json: { error: "Cannot delete other user's likes" }, status: :forbidden
         return
       end
 
@@ -70,9 +60,25 @@ module V1
 
     private
 
-    # todo: delete時のstrong_parameterを作成するか検討。
+    # TODO: delete時のstrong_parameterを作成するか検討。
     def params_like_create
       params.permit(:task_id, :current_user_id)
+    end
+
+    def render_task_not_found
+      render json: { error: 'Task not found' }, status: :not_found
+    end
+
+    def render_invalid_parameters
+      render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
+    end
+
+    def render_user_already_liked
+      render json: { error: 'Conflict: User has already liked this task' }, status: :conflict
+    end
+
+    def render_no_content
+      render json: {}, status: :no_content
     end
   end
 end
