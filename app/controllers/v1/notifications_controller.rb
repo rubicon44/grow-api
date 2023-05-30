@@ -5,29 +5,25 @@ module V1
     def index
       current_user = User.find(params[:user_id])
 
-      # 未読の通知を既読にする
-      current_user.passive_notifications.where(checked: false).update_all(checked: true)
-      notifications = current_user.passive_notifications.where.not(visitor_id: current_user.id)
-
-      # 通知の配列を直接使用して、フォローといいねのユーザーを生成
-      follow_visitors = []
-      like_visitors = []
-      notifications.each do |notification|
-        if notification.action == 'follow'
-          follow_visitors.push(notification.visitor)
-        elsif notification.action == 'like' && notification.visitor_id != current_user.id
-          like_visitors.push(notification.visitor)
-        end
-      end
+      Notification.mark_notifications_as_read(current_user)
+      notifications = Notification.get_unread_notifications(current_user)
+      follow_visitors, like_visitors = Notification.generate_notification_users(current_user)
 
       render json: {
-        follow_visitors: ActiveModel::Serializer::CollectionSerializer.new(follow_visitors,
-                                                                           each_serializer: UserSerializer),
-        like_visitors: ActiveModel::Serializer::CollectionSerializer.new(like_visitors,
-                                                                         each_serializer: UserSerializer),
-        notifications: ActiveModel::Serializer::CollectionSerializer.new(notifications,
-                                                                         each_serializer: NotificationSerializer)
+        follow_visitors: serialize_users(follow_visitors),
+        like_visitors: serialize_users(like_visitors),
+        notifications: serialize_notifications(notifications)
       }, status: :ok
+    end
+
+    private
+
+    def serialize_users(users)
+      ActiveModel::Serializer::CollectionSerializer.new(users, each_serializer: UserSerializer)
+    end
+
+    def serialize_notifications(notifications)
+      ActiveModel::Serializer::CollectionSerializer.new(notifications, each_serializer: NotificationSerializer)
     end
   end
 end
