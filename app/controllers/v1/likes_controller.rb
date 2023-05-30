@@ -34,25 +34,10 @@ module V1
       task = Task.find_by(id: params[:task_id])
       likes = Like.where(task_id: params[:task_id])
 
-      if current_user.nil?
-        render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
-        return
-      end
-
-      if task.nil?
-        render json: { error: 'Task not found' }, status: :not_found
-        return
-      end
-
-      if likes.empty?
-        render json: { error: 'Likes not found' }, status: :not_found
-        return
-      end
-
-      if likes.pluck(:user_id).exclude?(current_user.id)
-        render json: { error: "Cannot delete other user's likes" }, status: :forbidden
-        return
-      end
+      return render_invalid_parameters if current_user.nil?
+      return render_task_not_found if task.nil?
+      return render_like_not_found if likes.empty?
+      return render_forbidden unless Like.user_owns_likes?(current_user, likes)
 
       current_user.unlike(task)
       head :no_content, status: 204
@@ -65,6 +50,18 @@ module V1
       params.permit(:task_id, :current_user_id)
     end
 
+    def render_forbidden
+      render json: { error: "Cannot delete other user's likes" }, status: :forbidden
+    end
+
+    def render_like_not_found
+      render json: { error: 'Likes not found' }, status: :not_found
+    end
+
+    def render_no_content
+      render json: {}, status: :no_content
+    end
+
     def render_task_not_found
       render json: { error: 'Task not found' }, status: :not_found
     end
@@ -75,10 +72,6 @@ module V1
 
     def render_user_already_liked
       render json: { error: 'Conflict: User has already liked this task' }, status: :conflict
-    end
-
-    def render_no_content
-      render json: {}, status: :no_content
     end
   end
 end

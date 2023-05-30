@@ -1,5 +1,8 @@
 require: rubocop-rails
 
+Metrics/AbcSize:
+  Max: 20
+
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*'
