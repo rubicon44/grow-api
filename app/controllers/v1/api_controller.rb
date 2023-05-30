@@ -14,18 +14,20 @@ module V1
     def check_authenticate!
       token = request.cookies['token']
 
-      if token.blank?
-        render json: { errors: 'Authorization token is missing' }, status: :unauthorized
-        return
-      end
+      return render_unauthorized('Authorization token is missing') if token.blank?
+
       begin
         decoded = JsonWebToken.decode(token)
         User.find_by(email: decoded[:user_email])
       rescue ActiveRecord::RecordNotFound => e
-        render json: { errors: e.message }, status: :unauthorized
+        render_unauthorized(e.message)
       rescue JWT::DecodeError => e
-        render json: { errors: e.message }, status: :unauthorized
+        render_unauthorized(e.message)
       end
+    end
+
+    def render_unauthorized(errors)
+      render json: { errors: errors }, status: :unauthorized
     end
 
     def handle_invalid_csrf_token(_exception)

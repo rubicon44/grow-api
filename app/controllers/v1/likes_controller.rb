@@ -21,24 +21,12 @@ module V1
       current_user = User.find_by(id: like_params[:current_user_id])
       task = Task.find_by(id: like_params[:task_id])
 
-      if task.nil?
-        render json: { error: 'Task not found' }, status: :not_found
-        return
-      end
+      return render_task_not_found if task.nil?
+      return render_invalid_parameters if current_user.nil? || task.nil?
+      return render_user_already_liked if Like.user_already_liked?(current_user, task)
 
-      if current_user.nil? || task.nil?
-        render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
-        return
-      end
-
-      if current_user.likes.exists?(task_id: task.id)
-        render json: { error: 'Conflict: User has already liked this task' }, status: :conflict
-      else
-        current_user.like(task)
-        noti_task = Task.find(like_params[:task_id])
-        noti_task.create_notification_like!(current_user)
-        render json: {}, status: :no_content
-      end
+      Like.create_like_and_notification(current_user, task)
+      render_no_content
     end
 
     def destroy
@@ -75,6 +63,22 @@ module V1
     # TODO: delete時のstrong_parameterを作成するか検討。
     def params_like_create
       params.permit(:task_id, :current_user_id)
+    end
+
+    def render_task_not_found
+      render json: { error: 'Task not found' }, status: :not_found
+    end
+
+    def render_invalid_parameters
+      render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
+    end
+
+    def render_user_already_liked
+      render json: { error: 'Conflict: User has already liked this task' }, status: :conflict
+    end
+
+    def render_no_content
+      render json: {}, status: :no_content
     end
   end
 end
