@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module V1
-  # TODO: serializerロジックを「app/serializers/」以下ファイル内に移行
   class TasksController < ApiController
     before_action :require_task_owner, only: %i[update destroy]
     def index
@@ -51,6 +50,8 @@ module V1
       render_forbidden(error_message) if error_message && task.user_id != current_user_id
     end
 
+    # TODO: serializerへ移動
+    # TODO: 「serialize_collection」として処理を共通化
     def serialize_tasks(tasks)
       tasks_data = ActiveModel::Serializer::CollectionSerializer.new(tasks, each_serializer: TaskSerializer).as_json
       tasks_data.map do |task|

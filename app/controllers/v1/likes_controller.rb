@@ -48,11 +48,11 @@ module V1
     end
 
     def render_forbidden
-      render json: { error: "Cannot delete other user's likes" }, status: :forbidden
+      render json: { errors: "Cannot delete other user's likes" }, status: :forbidden
     end
 
     def render_like_not_found
-      render json: { error: 'Likes not found' }, status: :not_found
+      render json: { errors: 'Likes not found' }, status: :not_found
     end
 
     def render_no_content
@@ -60,15 +60,15 @@ module V1
     end
 
     def render_task_not_found
-      render json: { error: 'Task not found' }, status: :not_found
+      render json: { errors: 'Task not found' }, status: :not_found
     end
 
     def render_invalid_parameters
-      render json: { error: 'Invalid parameters' }, status: :unprocessable_entity
+      render json: { errors: 'Invalid parameters' }, status: :unprocessable_entity
     end
 
     def render_user_already_liked
-      render json: { error: 'Conflict: User has already liked this task' }, status: :conflict
+      render json: { errors: 'Conflict: User has already liked this task' }, status: :conflict
     end
   end
 end
