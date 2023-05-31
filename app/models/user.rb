@@ -4,17 +4,21 @@ class User < ApplicationRecord
   validates :username, uniqueness: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: 'は有効なメールアドレスの形式で入力してください' }
 
-  has_many :tasks
+  has_many :tasks, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :like_tasks, through: :likes, source: :task
 
-  has_many :active_relationships, class_name: 'Relationship', foreign_key: :following_id, dependent: :destroy
-  has_many :passive_relationships, class_name: 'Relationship', foreign_key: :follower_id, dependent: :destroy
+  has_many :active_relationships, class_name: 'Relationship', foreign_key: :following_id, dependent: :destroy,
+                                  inverse_of: :following
+  has_many :passive_relationships, class_name: 'Relationship', foreign_key: :follower_id, dependent: :destroy,
+                                   inverse_of: :follower
   has_many :followings, through: :active_relationships, source: :follower
   has_many :followers, through: :passive_relationships, source: :following
 
-  has_many :active_notifications, class_name: 'Notification', foreign_key: 'visitor_id', dependent: :destroy
-  has_many :passive_notifications, class_name: 'Notification', foreign_key: 'visited_id', dependent: :destroy
+  has_many :active_notifications, class_name: 'Notification', foreign_key: 'visitor_id', dependent: :destroy,
+                                  inverse_of: :visitor
+  has_many :passive_notifications, class_name: 'Notification', foreign_key: 'visited_id', dependent: :destroy,
+                                   inverse_of: :visited
   has_many :visitors, through: :active_notifications, source: :visitor
   has_many :visiteds, through: :passive_notifications, source: :visited
 
