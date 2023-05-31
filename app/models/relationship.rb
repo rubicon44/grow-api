@@ -21,7 +21,7 @@ class Relationship < ApplicationRecord
     following_user = User.find(following_id)
     follower_user = User.find(follower_id)
     following_user.follow(follower_user)
-    Relationship.create_notification_follow(following_user, follower_user)
+    create_notification_follow(following_user, follower_user)
   end
 
   def self.unfollow_users(following_id, follower_id)
@@ -30,11 +30,11 @@ class Relationship < ApplicationRecord
     following_user.unfollow(follower_user)
   end
 
-  def self.create_notification_follow(following_user, follower_user)
-    follower_user.create_notification_follow!(following_user, follower_user)
-  end
-
   def self.relationship_not_found?(following_id, follower_id)
     Relationship.where(following_id: following_id, follower_id: follower_id).empty?
+  end
+
+  def self.create_notification_follow(following_user, follower_user)
+    follower_user.create_notification_follow!(following_user, follower_user)
   end
 end

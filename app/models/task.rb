@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# TODO: Fat Modelの解消
 class Task < ApplicationRecord
   before_validation :set_default_task_dates
   before_create :set_untitled_title
@@ -18,35 +19,53 @@ class Task < ApplicationRecord
   validate :check_start_date_is_before_end_date
 
   def create_notification_like!(current_user)
-    # すでに「いいね」されているか検索(いいねされていない場合のみ、通知レコードを作成)
-    return if Notification.where(visitor_id: current_user.id, visited_id: user_id, task_id: id,
-                                 action: 'like').present?
+    return if notification_like_exists?(current_user.id)
 
+    notification = build_like_notification(current_user)
+    save_valid_notification(notification)
+  end
+
+  private
+
+  def notification_like_exists?(current_user_id)
+    Notification.exists?(visitor_id: current_user_id, visited_id: user_id, task_id: id, action: 'like')
+  end
+
+  def build_like_notification(current_user)
     notification = current_user.active_notifications.new(
       task_id: id,
       visited_id: user_id,
       action: 'like'
     )
-    # 自分の投稿に対するいいねの場合は、通知済みとする
     notification.checked = true if notification.visitor_id == notification.visited_id
-    notification.save if notification.valid?
+    notification
   end
 
-  private
+  def save_valid_notification(notification)
+    notification.save if notification.valid?
+  end
 
   def set_untitled_title
     self.title = '無題' if title.blank?
   end
 
   def set_default_task_dates
-    if start_date.blank? && end_date.present?
-      self.start_date = (Date.parse(end_date) - 1.day).to_s
-    elsif end_date.blank? && start_date.present?
-      self.end_date = (Date.parse(start_date) + 1.day).to_s
-    elsif start_date.blank? && end_date.blank?
-      self.start_date = Date.current.to_s
-      self.end_date = (Date.current + 1.day).to_s
-    end
+    set_start_date_default if start_date.blank? && end_date.present?
+    set_end_date_default if end_date.blank? && start_date.present?
+    set_both_dates_default if start_date.blank? && end_date.blank?
+  end
+
+  def set_start_date_default
+    self.start_date = (Date.parse(end_date) - 1.day).to_s
+  end
+
+  def set_end_date_default
+    self.end_date = (Date.parse(start_date) + 1.day).to_s
+  end
+
+  def set_both_dates_default
+    self.start_date = Date.current.to_s
+    self.end_date = (Date.current + 1.day).to_s
   end
 
   def check_start_date_is_before_end_date
