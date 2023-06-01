@@ -4,14 +4,15 @@ module V1
   class TasksController < ApiController
     before_action :require_task_owner, only: %i[update destroy]
     def index
-      tasks = Task.all.order('tasks.id DESC')
-      tasks_data = serialize_tasks(tasks)
+      # TODO: ページネーションの追加
+      tasks = Task.includes(:user).order('tasks.id DESC')
+      tasks_data = serialize_tasks_with_users(tasks)
       render json: { tasks: tasks_data }, status: :ok
     end
 
     def show
       task = Task.find(params[:id])
-      task_data = serialize_task(task)
+      task_data = serialize_task_with_user(task)
       render json: task_data, status: :ok
     end
 
@@ -50,24 +51,14 @@ module V1
       render_forbidden(error_message) if error_message && task.user_id != current_user_id
     end
 
-    # TODO: serializerへ移動
-    # TODO: 「serialize_collection」として処理を共通化
-    def serialize_tasks(tasks)
-      tasks_data = ActiveModel::Serializer::CollectionSerializer.new(tasks, each_serializer: TaskSerializer).as_json
-      tasks_data.map do |task|
-        task_user = User.find(task[:user_id])
-        task.merge(user: serialize_user(task_user))
-      end
+    def serialize_tasks_with_users(tasks)
+      TaskSerializer.serialize_tasks_collection(tasks)
     end
 
-    def serialize_task(task)
-      task_data = TaskSerializer.new(task).as_json
+    def serialize_task_with_user(task)
+      task_data = TaskSerializer.serialize_task(task)
       task_user = User.find(task.user_id)
-      task_data.merge(user: serialize_user(task_user))
-    end
-
-    def serialize_user(user)
-      UserSerializer.new(user).as_json
+      task_data.merge(user: TaskSerializer.serialize_user(task_user))
     end
 
     def render_forbidden(message)

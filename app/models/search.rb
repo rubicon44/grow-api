@@ -10,6 +10,7 @@ class Search < ApplicationRecord
     end
   end
 
+  # TODO: User検索で「username」「nickname」どちらでも検索できるようにする。
   def self.search_users(contents, method)
     users = if method == 'perfect'
               User.where(username: contents)

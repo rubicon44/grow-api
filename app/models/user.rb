@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  validates :username, uniqueness: true
-  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: 'は有効なメールアドレスの形式で入力してください' }
-
   has_many :tasks, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :like_tasks, through: :likes, source: :task
@@ -21,6 +18,8 @@ class User < ApplicationRecord
                                    inverse_of: :visited
   has_many :visitors, through: :active_notifications, source: :visitor
   has_many :visiteds, through: :passive_notifications, source: :visited
+
+  validate :validate_user
 
   # like function
   def like(task)
@@ -49,5 +48,20 @@ class User < ApplicationRecord
       action: 'follow'
     )
     notification.save if notification.valid?
+  end
+
+  private
+
+  def validate_user
+    validate_email
+    validate_username
+  end
+
+  def validate_email
+    errors.add(:email, 'は有効なメールアドレスの形式で入力してください') unless URI::MailTo::EMAIL_REGEXP.match?(email)
+  end
+
+  def validate_username
+    errors.add(:username, 'は既に存在しています') if username_changed? && User.exists?(username: username)
   end
 end

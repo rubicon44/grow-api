@@ -4,8 +4,7 @@ class Like < ApplicationRecord
   belongs_to :user
   belongs_to :task
 
-  validates :user_id, presence: true
-  validates :task_id, presence: true
+  validate :validate_like
 
   def self.create_like_and_notification(current_user, task)
     current_user.like(task)
@@ -19,5 +18,20 @@ class Like < ApplicationRecord
 
   def self.user_owns_likes?(current_user, likes)
     likes.pluck(:user_id).include?(current_user.id)
+  end
+
+  private
+
+  def validate_like
+    validate_user_id
+    validate_task_id
+  end
+
+  def validate_user_id
+    errors.add(:user_id, ' must be present') if user_id.blank?
+  end
+
+  def validate_task_id
+    errors.add(:task_id, ' must be present') if task_id.blank?
   end
 end

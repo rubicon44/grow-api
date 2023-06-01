@@ -4,8 +4,7 @@ class Relationship < ApplicationRecord
   belongs_to :following, class_name: 'User', optional: true
   belongs_to :follower, class_name: 'User', optional: true
 
-  validates :following_id, presence: true
-  validates :follower_id, presence: true
+  validate :validate_relationship
 
   def self.find_following_and_follower_users(following_id, follower_id)
     following_user = User.find_by(id: following_id)
@@ -36,5 +35,20 @@ class Relationship < ApplicationRecord
 
   def self.create_notification_follow(following_user, follower_user)
     follower_user.create_notification_follow!(following_user, follower_user)
+  end
+
+  private
+
+  def validate_relationship
+    validate_following_id
+    validate_follower_id
+  end
+
+  def validate_following_id
+    errors.add(:following_id, ' must be present') if following_id.blank?
+  end
+
+  def validate_follower_id
+    errors.add(:follower_id, ' must be present') if follower_id.blank?
   end
 end

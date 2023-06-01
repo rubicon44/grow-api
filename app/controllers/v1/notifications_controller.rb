@@ -9,21 +9,17 @@ module V1
       notifications = Notification.get_unread_notifications(current_user)
       follow_visitors, like_visitors = Notification.generate_notification_users(current_user)
 
-      render json: {
-        follow_visitors: serialize_users(follow_visitors),
-        like_visitors: serialize_users(like_visitors),
-        notifications: serialize_notifications(notifications)
-      }, status: :ok
+      render_notifications(follow_visitors, like_visitors, notifications)
     end
 
     private
 
-    def serialize_users(users)
-      ActiveModel::Serializer::CollectionSerializer.new(users, each_serializer: UserSerializer)
-    end
-
-    def serialize_notifications(notifications)
-      ActiveModel::Serializer::CollectionSerializer.new(notifications, each_serializer: NotificationSerializer)
+    def render_notifications(follow_visitors, like_visitors, notifications)
+      render json: {
+        follow_visitors: UserSerializer.serialize_users_collection(follow_visitors),
+        like_visitors: UserSerializer.serialize_users_collection(like_visitors),
+        notifications: NotificationSerializer.serialize_notifications_collection(notifications)
+      }, status: :ok
     end
   end
 end

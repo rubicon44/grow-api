@@ -13,4 +13,12 @@ class UserSerializer < ActiveModel::Serializer
     hash.delete(:firebase_id) unless @firebase_id
     hash
   end
+
+  def self.serialize_users_collection(collection, options = {})
+    ActiveModel::Serializer::CollectionSerializer.new(collection, each_serializer: UserSerializer, **options).as_json
+  end
+
+  def self.serialize_user(user)
+    UserSerializer.new(user).as_json
+  end
 end

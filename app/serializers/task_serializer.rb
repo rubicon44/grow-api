@@ -2,15 +2,17 @@
 
 class TaskSerializer < ActiveModel::Serializer
   attributes :id, :user_id, :content, :end_date, :start_date, :status, :title
+  belongs_to :user
 
-  def initialize(object, options = {})
-    super
-    @user = options[:user]
+  def self.serialize_tasks_collection(collection, options = {})
+    ActiveModel::Serializer::CollectionSerializer.new(collection, each_serializer: TaskSerializer, **options).as_json
   end
 
-  def attributes(*args)
-    hash = super
-    hash[:user] = UserSerializer.new(object.user).as_json if @user
-    hash
+  def self.serialize_task(task)
+    TaskSerializer.new(task).as_json
+  end
+
+  def self.serialize_user(user)
+    UserSerializer.new(user).as_json
   end
 end
