@@ -11,12 +11,7 @@ class Task < ApplicationRecord
   has_many :liked_users, through: :likes, source: :user
   has_many :notifications, dependent: :destroy
 
-  validates :title, presence: true, length: { maximum: 255 }
-  validates :content, length: { maximum: 5000 }
-  validates :status, inclusion: { in: [0, 1, 2, 3] }
-  validates :start_date, format: { with: /\A\d{4}-\d{2}-\d{2}\z/ }
-  validates :end_date, format: { with: /\A\d{4}-\d{2}-\d{2}\z/ }
-  validate :check_start_date_is_before_end_date
+  validate :validate_task
 
   def create_notification_like!(current_user)
     return if notification_like_exists?(current_user.id)
@@ -68,10 +63,43 @@ class Task < ApplicationRecord
     self.end_date = (Date.current + 1.day).to_s
   end
 
-  def check_start_date_is_before_end_date
+  def validate_task
+    validate_title
+    validate_content
+    validate_status
+    validate_start_date
+    validate_end_date
+    validate_start_date_before_end_date
+  end
+
+  def validate_title
+    errors.add(:title, ' must be present') if title.blank?
+    errors.add(:title, ' exceeds maximum length') if title.length > 255
+  end
+
+  def validate_content
+    errors.add(:content, ' exceeds maximum length') if content.present? && content.length > 5000
+  end
+
+  def validate_status
+    errors.add(:status, ' is invalid') unless [0, 1, 2, 3].include?(status)
+  end
+
+  def validate_start_date
+    errors.add(:start_date, ' has invalid format') if start_date.present? && !valid_date_format?(start_date)
+  end
+
+  def validate_end_date
+    errors.add(:end_date, ' has invalid format') if end_date.present? && !valid_date_format?(end_date)
+  end
+
+  def valid_date_format?(date)
+    /\A\d{4}-\d{2}-\d{2}\z/.match?(date)
+  end
+
+  def validate_start_date_before_end_date
     return unless start_date.present? && end_date.present? && end_date < start_date
 
     errors.add(:end_date, ' must be after start date')
-    raise ActiveRecord::RecordInvalid, self
   end
 end

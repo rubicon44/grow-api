@@ -9,7 +9,7 @@ module V1
 
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
-      likes_data = ActiveModel::Serializer::CollectionSerializer.new(likes, each_serializer: LikeSerializer).as_json
+      likes_data = LikeSerializer.serialize_likes_collection(likes)
       render json: { likes: likes_data, like_count: like_count }, status: :ok
     end
 

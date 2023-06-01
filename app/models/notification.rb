@@ -7,10 +7,7 @@ class Notification < ApplicationRecord
   belongs_to :visitor, class_name: 'User', optional: true
   belongs_to :visited, class_name: 'User', optional: true
 
-  validates :visitor_id, presence: true
-  validates :visited_id, presence: true
-  validates :action, presence: true
-  validates :checked, inclusion: { in: [true, false] }
+  validate :validate_notification
 
   def self.mark_notifications_as_read(user)
     user.passive_notifications.where(checked: false).find_each do |notification|
@@ -29,5 +26,30 @@ class Notification < ApplicationRecord
     end.map(&:visitor)
 
     [follow_visitors.uniq, like_visitors.uniq]
+  end
+
+  private
+
+  def validate_notification
+    validate_visitor_id
+    validate_visited_id
+    validate_action
+    validate_checked
+  end
+
+  def validate_visitor_id
+    errors.add(:visitor_id, ' must be present') if visitor_id.blank?
+  end
+
+  def validate_visited_id
+    errors.add(:visited_id, ' must be present') if visited_id.blank?
+  end
+
+  def validate_action
+    errors.add(:action, ' must be present') if action.blank?
+  end
+
+  def validate_checked
+    errors.add(:checked, ' must be either true or false') unless [true, false].include?(checked)
   end
 end

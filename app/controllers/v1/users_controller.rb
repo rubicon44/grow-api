@@ -9,10 +9,7 @@ module V1
       if user.nil?
         render_user_not_found
       else
-        user_data = serialize_user(user).merge(
-          tasks: serialize_collection(user.tasks.order('tasks.id DESC'), TaskSerializer, user: true),
-          liked_tasks: serialize_collection(user.like_tasks.order('likes.id DESC'), TaskSerializer, user: true)
-        )
+        user_data = serialize_user_data(user)
         render json: user_data, status: :ok
       end
     end
@@ -24,7 +21,7 @@ module V1
         render_user_not_found
       else
         followings = user.followings.order('relationships.id DESC')
-        render json: { followings: serialize_collection(followings, UserSerializer) }, status: :ok
+        render json: { followings: UserSerializer.serialize_users_collection(followings) }, status: :ok
       end
     end
 
@@ -35,7 +32,7 @@ module V1
         render_user_not_found
       else
         followers = user.followers.order('relationships.id DESC')
-        render json: { followers: serialize_collection(followers, UserSerializer) }, status: :ok
+        render json: { followers: UserSerializer.serialize_users_collection(followers) }, status: :ok
       end
     end
 
@@ -55,7 +52,11 @@ module V1
       current_user_id = params[:current_user_id].to_i
       return render_forbidden(request.method.downcase) unless require_user_authorization(user.id, current_user_id)
 
-      render_no_content if user.update(params_user_update)
+      if user.update(params_user_update)
+        render json: user, status: :ok
+      else
+        render_unprocessable_entity(user)
+      end
     end
 
     # TODO: 追加予定
@@ -79,13 +80,11 @@ module V1
       end
     end
 
-    # TODO: serializerへ移動
-    def serialize_collection(collection, serializer, options = {})
-      ActiveModel::Serializer::CollectionSerializer.new(collection, each_serializer: serializer, **options)
-    end
-
-    def serialize_user(user)
-      UserSerializer.new(user).as_json
+    def serialize_user_data(user)
+      UserSerializer.serialize_user(user).merge(
+        tasks: TaskSerializer.serialize_tasks_collection(user.tasks.order('tasks.id DESC')),
+        liked_tasks: TaskSerializer.serialize_tasks_collection(user.like_tasks.order('likes.id DESC'))
+      )
     end
 
     # TODO: エラー出力の方法をapi_controllerに任せるか検討
