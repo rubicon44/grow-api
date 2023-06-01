@@ -1,5 +1,13 @@
 require: rubocop-rails
 
+AllCops:
+  Exclude:
+    - bin/*
+    - db/schema.rb
+    - node_modules/**/*
+    - db/migrate/*
+    - vendor/**/*
+
 Metrics/AbcSize:
   Max: 20
 
