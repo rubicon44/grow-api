@@ -9,19 +9,22 @@ module V1
       results = Search.search(model, contents, method)
 
       serialized_results = {}
-
-      if results[:users].present?
-        serialized_results[:users] =
-          ActiveModelSerializers::SerializableResource.new(results[:users].order('users.id DESC'),
-                                                           each_serializer: UserSerializer)
-      end
-      if results[:tasks].present?
-        serialized_results[:tasks] =
-          ActiveModelSerializers::SerializableResource.new(results[:tasks].order('tasks.id DESC'),
-                                                           each_serializer: TaskSerializer, user: true)
-      end
+      serialized_results[:users] = serialize_users(results[:users]) if results[:users].present?
+      serialized_results[:tasks] = serialize_tasks(results[:tasks]) if results[:tasks].present?
 
       render json: serialized_results, status: :ok
+    end
+
+    private
+
+    def serialize_users(users)
+      ActiveModelSerializers::SerializableResource.new(users.order('users.id DESC'),
+                                                       each_serializer: UserSerializer)
+    end
+
+    def serialize_tasks(tasks)
+      ActiveModelSerializers::SerializableResource.new(tasks.order('tasks.id DESC'),
+                                                       each_serializer: TaskSerializer, user: true)
     end
   end
 end
