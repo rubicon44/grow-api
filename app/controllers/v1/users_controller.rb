@@ -15,24 +15,18 @@ module V1
 
     def followings
       user = find_user
+      return render_user_not_found if user.nil?
 
-      if user.nil?
-        render_user_not_found
-      else
-        followings = user.followings.order('relationships.id DESC')
-        render json: { followings: UserSerializer.serialize_users_collection(followings) }, status: :ok
-      end
+      followings = user.followings.order('relationships.id DESC')
+      render json: { followings: UserSerializer.serialize_users_collection(followings) }, status: :ok
     end
 
     def followers
       user = find_user
+      return render_user_not_found if user.nil?
 
-      if user.nil?
-        render_user_not_found
-      else
-        followers = user.followers.order('relationships.id DESC')
-        render json: { followers: UserSerializer.serialize_users_collection(followers) }, status: :ok
-      end
+      followers = user.followers.order('relationships.id DESC')
+      render json: { followers: UserSerializer.serialize_users_collection(followers) }, status: :ok
     end
 
     def create
