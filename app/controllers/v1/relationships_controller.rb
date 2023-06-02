@@ -2,7 +2,6 @@
 
 module V1
   class RelationshipsController < ApiController
-    # TODO: 「Max: 11」適用
     def create
       following_id = params[:following_id].to_i
       follower_id = params[:follower_id].to_i
@@ -19,7 +18,6 @@ module V1
       render_no_content
     end
 
-    # TODO: 「Max: 11」適用
     def destroy
       following_id = params[:following_id].to_i
       follower_id = params[:follower_id].to_i
@@ -33,7 +31,7 @@ module V1
       )
 
       Relationship.unfollow_users(following_id, follower_id)
-      head :no_content, status: 204
+      render_no_content
     end
 
     private

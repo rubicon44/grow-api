@@ -6,16 +6,22 @@ module V1
       contents = params[:contents]
       model = params[:model]
       method = params[:method]
-      results = Search.search(model, contents, method)
+      return render_bad_request unless valid_model?(model)
 
-      serialized_results = {}
-      serialized_results[:tasks] = serialize_tasks(results[:tasks]) if results[:tasks].present?
-      serialized_results[:users] = serialize_users(results[:users]) if results[:users].present?
+      results = Search.search(model, contents, method)
+      serialized_results = serialize_results(results)
 
       render json: serialized_results, status: :ok
     end
 
     private
+
+    def serialize_results(results)
+      serialized_results = {}
+      serialized_results[:tasks] = serialize_tasks(results[:tasks]) if results[:tasks].present?
+      serialized_results[:users] = serialize_users(results[:users]) if results[:users].present?
+      serialized_results
+    end
 
     def serialize_tasks(tasks)
       TaskSerializer.serialize_tasks_collection(tasks.order('tasks.id DESC'))
@@ -23,6 +29,14 @@ module V1
 
     def serialize_users(users)
       UserSerializer.serialize_users_collection(users.order('users.id DESC'))
+    end
+
+    def valid_model?(model)
+      %w[user task].include?(model)
+    end
+
+    def render_bad_request
+      render json: { errors: 'Invalid search model' }, status: :bad_request
     end
   end
 end

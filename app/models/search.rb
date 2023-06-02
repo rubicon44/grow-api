@@ -7,6 +7,8 @@ class Search < ApplicationRecord
       Search.search_users(contents, method)
     when 'task'
       Search.search_tasks(contents, method)
+    else
+      { errors: 'Invalid search model' }
     end
   end
 

@@ -4,7 +4,6 @@ module V1
   class LikesController < ApiController
     def index
       task = Task.find_by(id: params[:task_id])
-
       return render_task_not_found if task.nil?
 
       likes = Like.where(task_id: params[:task_id])
@@ -22,8 +21,7 @@ module V1
       return render_invalid_parameters if current_user.nil? || task.nil?
       return render_user_already_liked if Like.user_already_liked?(current_user, task)
 
-      Like.create_like_and_notification(current_user, task)
-      render_no_content
+      Like.create_like_and_notification(current_user, task) ? render_no_content : render_not_created
     end
 
     def destroy
@@ -36,8 +34,7 @@ module V1
       return render_like_not_found if likes.empty?
       return render_forbidden unless Like.user_owns_likes?(current_user, likes)
 
-      current_user.unlike(task)
-      head :no_content, status: 204
+      delete_like(current_user, task)
     end
 
     private
@@ -45,6 +42,14 @@ module V1
     # TODO: delete時のstrong_parameterを作成するか検討。
     def params_like_create
       params.permit(:task_id, :current_user_id)
+    end
+
+    def delete_like(current_user, task)
+      if current_user.unlike(task)
+        render_no_content
+      else
+        render_not_destroyed
+      end
     end
 
     def render_forbidden
@@ -65,6 +70,14 @@ module V1
 
     def render_invalid_parameters
       render json: { errors: 'Invalid parameters' }, status: :unprocessable_entity
+    end
+
+    def render_not_created
+      render json: { errors: 'Like could not be created' }, status: :unprocessable_entity
+    end
+
+    def render_not_destroyed
+      render json: { errors: 'Like could not be destroyed' }, status: :unprocessable_entity
     end
 
     def render_user_already_liked

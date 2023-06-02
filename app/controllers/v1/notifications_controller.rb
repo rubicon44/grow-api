@@ -3,7 +3,8 @@
 module V1
   class NotificationsController < ApiController
     def index
-      current_user = User.find(params[:user_id])
+      current_user = User.find_by(id: params[:user_id])
+      return render_user_not_found if current_user.nil?
 
       Notification.mark_notifications_as_read(current_user)
       notifications = Notification.get_unread_notifications(current_user)
@@ -20,6 +21,10 @@ module V1
         like_visitors: UserSerializer.serialize_users_collection(like_visitors),
         notifications: NotificationSerializer.serialize_notifications_collection(notifications)
       }, status: :ok
+    end
+
+    def render_user_not_found
+      render json: { errors: 'User not found' }, status: :not_found
     end
   end
 end

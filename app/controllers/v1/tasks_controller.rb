@@ -14,8 +14,7 @@ module V1
       task = find_task
       return render_not_found unless task
 
-      task_data = serialize_task_with_user(task)
-      render json: task_data, status: :ok
+      render json: serialize_task_with_user(task), status: :ok
     end
 
     def create
@@ -45,7 +44,7 @@ module V1
     end
 
     def require_task_owner
-      task = Task.find(params[:id])
+      task = find_task
       current_user_id = params[:current_user_id].to_i
 
       error_message = if request.method == 'PUT'

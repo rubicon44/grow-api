@@ -22,10 +22,6 @@ class Task < ApplicationRecord
 
   private
 
-  def notification_like_exists?(current_user_id)
-    Notification.exists?(visitor_id: current_user_id, visited_id: user_id, task_id: id, action: 'like')
-  end
-
   def build_like_notification(current_user)
     notification = current_user.active_notifications.new(
       task_id: id,
@@ -34,6 +30,10 @@ class Task < ApplicationRecord
     )
     notification.checked = true if notification.visitor_id == notification.visited_id
     notification
+  end
+
+  def notification_like_exists?(current_user_id)
+    Notification.exists?(visitor_id: current_user_id, visited_id: user_id, task_id: id, action: 'like')
   end
 
   def save_valid_notification(notification)
