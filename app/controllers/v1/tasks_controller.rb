@@ -11,7 +11,9 @@ module V1
     end
 
     def show
-      task = Task.find(params[:id])
+      task = find_task
+      return render_not_found unless task
+
       task_data = serialize_task_with_user(task)
       render json: task_data, status: :ok
     end
@@ -23,19 +25,23 @@ module V1
     end
 
     def update
-      task = Task.find(params[:id])
+      task = find_task
       task.update(task_params) ? render_no_content : render_invalid_parameters(task.errors)
     end
 
     def destroy
-      task = Task.find(params[:id])
-      head :no_content, status: 204 if task.destroy
+      task = find_task
+      task.destroy ? render_no_content : render_not_destroyed
     end
 
     private
 
     def task_params
       params.require(:task).permit(:title, :content, :status, :start_date, :end_date, :user_id)
+    end
+
+    def find_task
+      Task.find_by(id: params[:id])
     end
 
     def require_task_owner
@@ -71,6 +77,14 @@ module V1
 
     def render_no_content
       render json: {}, status: :no_content
+    end
+
+    def render_not_destroyed
+      render json: { errors: 'Task could not be destroyed' }, status: :unprocessable_entity
+    end
+
+    def render_not_found
+      render json: { errors: 'Task not found' }, status: :not_found
     end
   end
 end
