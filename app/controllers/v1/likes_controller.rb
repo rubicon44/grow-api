@@ -37,7 +37,7 @@ module V1
       return render_forbidden unless Like.user_owns_likes?(current_user, likes)
 
       current_user.unlike(task)
-      head :no_content, status: 204
+      render_no_content
     end
 
     private

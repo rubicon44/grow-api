@@ -33,7 +33,7 @@ module V1
       )
 
       Relationship.unfollow_users(following_id, follower_id)
-      head :no_content, status: 204
+      render_no_content
     end
 
     private
