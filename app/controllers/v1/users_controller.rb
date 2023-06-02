@@ -4,18 +4,17 @@ module V1
   class UsersController < ApiController
     skip_before_action :check_authenticate!, only: %i[create], raise: false
     def show
-      user = User.find_by(username: params[:username])
+      user = find_user
 
       if user.nil?
         render_user_not_found
       else
-        user_data = serialize_user_data(user)
-        render json: user_data, status: :ok
+        render json: serialize_user_data(user), status: :ok
       end
     end
 
     def followings
-      user = User.find_by(username: params[:username])
+      user = find_user
 
       if user.nil?
         render_user_not_found
@@ -26,7 +25,7 @@ module V1
     end
 
     def followers
-      user = User.find_by(username: params[:username])
+      user = find_user
 
       if user.nil?
         render_user_not_found
@@ -38,15 +37,16 @@ module V1
 
     def create
       user = User.new(params_user_create)
+
       if [user.nickname, user.username, user.email, user.firebase_id].any?(&:nil?)
         return render_unprocessable_entity(user)
       end
 
-      render_no_content if user.save
+      user.save ? render_no_content : render_invalid_parameters(user.errors)
     end
 
     def update
-      user = User.find_by(username: params[:username])
+      user = find_user
       return render_user_not_found if user.nil?
 
       current_user_id = params[:current_user_id].to_i
@@ -72,6 +72,10 @@ module V1
       params.require(:user).permit(:nickname, :username, :bio)
     end
 
+    def find_user
+      User.find_by(username: params[:username])
+    end
+
     def require_user_authorization(user_id, current_user_id)
       if request.method == 'PUT'
         user_id == current_user_id
@@ -87,9 +91,12 @@ module V1
       )
     end
 
-    # TODO: エラー出力の方法をapi_controllerに任せるか検討
     def render_forbidden(method)
       render json: { errors: "You are not authorized to #{method} this user" }, status: :forbidden
+    end
+
+    def render_invalid_parameters(message)
+      render json: { errors: message }, status: :unprocessable_entity
     end
 
     def render_no_content
