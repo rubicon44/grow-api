@@ -17,15 +17,15 @@ class Relationship < ApplicationRecord
   end
 
   def self.follow_users(following_id, follower_id)
-    following_user = User.find(following_id)
-    follower_user = User.find(follower_id)
+    following_user = User.find_by(id: following_id)
+    follower_user = User.find_by(id: follower_id)
     following_user.follow(follower_user)
     create_notification_follow(following_user, follower_user)
   end
 
   def self.unfollow_users(following_id, follower_id)
-    following_user = User.find(following_id)
-    follower_user = User.find(follower_id)
+    following_user = User.find_by(id: following_id)
+    follower_user = User.find_by(id: follower_id)
     following_user.unfollow(follower_user)
   end
 

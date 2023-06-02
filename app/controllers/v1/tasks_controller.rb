@@ -45,7 +45,7 @@ module V1
     end
 
     def require_task_owner
-      task = Task.find(params[:id])
+      task = find_task
       current_user_id = params[:current_user_id].to_i
 
       error_message = if request.method == 'PUT'
