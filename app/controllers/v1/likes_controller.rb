@@ -4,7 +4,6 @@ module V1
   class LikesController < ApiController
     def index
       task = Task.find_by(id: params[:task_id])
-
       return render_task_not_found if task.nil?
 
       likes = Like.where(task_id: params[:task_id])
