@@ -17,7 +17,8 @@ module V1
       user = find_user
       return render_not_found('User') if user.nil?
 
-      followings = user.followings.order('relationships.id DESC')
+      followings = user.followings.includes(:active_relationships,
+                                            :passive_relationships).order('relationships.id DESC')
       render json: { followings: UserSerializer.serialize_users_collection(followings) }, status: :ok
     end
 
@@ -25,7 +26,7 @@ module V1
       user = find_user
       return render_not_found('User') if user.nil?
 
-      followers = user.followers.order('relationships.id DESC')
+      followers = user.followers.includes(:active_relationships, :passive_relationships).order('relationships.id DESC')
       render json: { followers: UserSerializer.serialize_users_collection(followers) }, status: :ok
     end
 
@@ -79,8 +80,8 @@ module V1
 
     def serialize_user_data(user)
       UserSerializer.serialize_user(user).merge(
-        tasks: TaskSerializer.serialize_tasks_collection(user.tasks.order('tasks.id DESC')),
-        liked_tasks: TaskSerializer.serialize_tasks_collection(user.like_tasks.order('likes.id DESC'))
+        tasks: TaskSerializer.serialize_tasks_collection(user.tasks.includes(:user).order('tasks.id DESC')),
+        liked_tasks: TaskSerializer.serialize_tasks_collection(user.like_tasks.includes(:user).order('likes.id DESC'))
       )
     end
 

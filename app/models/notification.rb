@@ -16,7 +16,7 @@ class Notification < ApplicationRecord
   end
 
   def self.get_unread_notifications(user)
-    user.passive_notifications.where.not(visitor_id: user.id)
+    user.passive_notifications.includes(:visitor).where.not(visitor_id: user.id)
   end
 
   def self.generate_notification_users(user)
