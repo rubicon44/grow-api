@@ -4,7 +4,7 @@ module V1
   class LikesController < ApiController
     def index
       task = Task.find_by(id: params[:task_id])
-      return render_task_not_found if task.nil?
+      return render_not_found('Task') if task.nil?
 
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
@@ -17,11 +17,13 @@ module V1
       current_user = User.find_by(id: like_params[:current_user_id])
       task = Task.find_by(id: like_params[:task_id])
 
-      return render_task_not_found if task.nil?
-      return render_invalid_parameters if current_user.nil? || task.nil?
-      return render_user_already_liked if Like.user_already_liked?(current_user, task)
+      return render_not_found('Task') if task.nil?
+      return render_unprocessable_entity(current_user) if current_user.nil?
+      return render_unprocessable_entity(task) if task.nil?
+      return render_user_already_liked('User has already liked this task') if Like.user_already_liked?(current_user,
+                                                                                                       task)
 
-      Like.create_like_and_notification(current_user, task) ? render_no_content : render_not_created
+      Like.create_like_and_notification(current_user, task) ? render_no_content : render_not_created('Like')
     end
 
     def destroy
@@ -29,10 +31,10 @@ module V1
       task = Task.find_by(id: params[:task_id])
       likes = Like.where(task_id: params[:task_id])
 
-      return render_invalid_parameters if current_user.nil?
-      return render_task_not_found if task.nil?
-      return render_like_not_found if likes.empty?
-      return render_forbidden unless Like.user_owns_likes?(current_user, likes)
+      return render_unprocessable_entity(current_user) if current_user.nil?
+      return render_not_found('Task') if task.nil?
+      return render_not_found('Likes') if likes.empty?
+      return render_forbidden("Cannot delete other user's likes") unless Like.user_owns_likes?(current_user, likes)
 
       delete_like(current_user, task)
     end
@@ -48,40 +50,8 @@ module V1
       if current_user.unlike(task)
         render_no_content
       else
-        render_not_destroyed
+        render_not_destroyed('Like')
       end
-    end
-
-    def render_forbidden
-      render json: { errors: "Cannot delete other user's likes" }, status: :forbidden
-    end
-
-    def render_like_not_found
-      render json: { errors: 'Likes not found' }, status: :not_found
-    end
-
-    def render_no_content
-      render json: {}, status: :no_content
-    end
-
-    def render_task_not_found
-      render json: { errors: 'Task not found' }, status: :not_found
-    end
-
-    def render_invalid_parameters
-      render json: { errors: 'Invalid parameters' }, status: :unprocessable_entity
-    end
-
-    def render_not_created
-      render json: { errors: 'Like could not be created' }, status: :unprocessable_entity
-    end
-
-    def render_not_destroyed
-      render json: { errors: 'Like could not be destroyed' }, status: :unprocessable_entity
-    end
-
-    def render_user_already_liked
-      render json: { errors: 'Conflict: User has already liked this task' }, status: :conflict
     end
   end
 end

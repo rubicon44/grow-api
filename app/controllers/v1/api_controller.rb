@@ -5,9 +5,6 @@ module V1
     before_action :check_authenticate!
     # rescue_from StandardError, with: :render500
     rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_csrf_token
-    # rescue_from ActiveRecord::RecordInvalid, with: :render422
-    # rescue_from ActiveRecord::RecordNotFound, with: :render404
-    # rescue_from ActionController::BadRequest, with: :render400
 
     private
 
@@ -39,16 +36,36 @@ module V1
     #   render json: { errors: 'Internal Server Error' }, status: :internal_server_error
     # end
 
-    # def render422(errors)
-    #   render json: { errors: errors }, status: :unprocessable_entity
-    # end
+    def render_bad_request(message)
+      render json: { errors: "Invalid #{message}" }, status: :bad_request
+    end
 
-    # def render404(errors)
-    #   render json: { errors: errors }, status: :not_found
-    # end
+    def render_conflict(message)
+      render json: { errors: message }, status: :conflict
+    end
 
-    # def render400(errors)
-    #   render json: { errors: errors }, status: :bad_request
-    # end
+    def render_forbidden(message)
+      render json: { errors: message }, status: :forbidden
+    end
+
+    def render_no_content
+      render json: {}, status: :no_content
+    end
+
+    def render_not_created(message)
+      render json: { errors: "#{message} could not be created" }, status: :unprocessable_entity
+    end
+
+    def render_not_destroyed(message)
+      render json: { errors: "#{message} could not be destroyed" }, status: :unprocessable_entity
+    end
+
+    def render_not_found(message)
+      render json: { errors: "#{message} not found" }, status: :not_found
+    end
+
+    def render_unprocessable_entity(object)
+      render json: { errors: object.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 end

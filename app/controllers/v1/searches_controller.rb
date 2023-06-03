@@ -6,7 +6,7 @@ module V1
       contents = params[:contents]
       model = params[:model]
       method = params[:method]
-      return render_bad_request unless valid_model?(model)
+      return render_bad_request('search model') unless valid_model?(model)
 
       results = Search.search(model, contents, method)
       serialized_results = serialize_results(results)
@@ -33,10 +33,6 @@ module V1
 
     def valid_model?(model)
       %w[user task].include?(model)
-    end
-
-    def render_bad_request
-      render json: { errors: 'Invalid search model' }, status: :bad_request
     end
   end
 end
