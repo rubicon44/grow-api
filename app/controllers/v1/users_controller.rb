@@ -7,7 +7,7 @@ module V1
       user = find_user
 
       if user.nil?
-        render_user_not_found
+        render_not_found('User')
       else
         render json: serialize_user_data(user), status: :ok
       end
@@ -15,7 +15,7 @@ module V1
 
     def followings
       user = find_user
-      return render_user_not_found if user.nil?
+      return render_not_found('User') if user.nil?
 
       followings = user.followings.order('relationships.id DESC')
       render json: { followings: UserSerializer.serialize_users_collection(followings) }, status: :ok
@@ -23,7 +23,7 @@ module V1
 
     def followers
       user = find_user
-      return render_user_not_found if user.nil?
+      return render_not_found('User') if user.nil?
 
       followers = user.followers.order('relationships.id DESC')
       render json: { followers: UserSerializer.serialize_users_collection(followers) }, status: :ok
@@ -36,21 +36,20 @@ module V1
         return render_unprocessable_entity(user)
       end
 
-      user.save ? render_no_content : render_invalid_parameters(user.errors)
+      user.save ? render_no_content : render_unprocessable_entity(user)
     end
 
     def update
       user = find_user
-      return render_user_not_found if user.nil?
+      return render_not_found('User') if user.nil?
 
       current_user_id = params[:current_user_id].to_i
-      return render_forbidden(request.method.downcase) unless require_user_authorization(user.id, current_user_id)
+      method = request.method.downcase
+      return render_forbidden("You are not authorized to #{method} this user") unless require_user_authorization(
+        user.id, current_user_id
+      )
 
-      if user.update(params_user_update)
-        render json: user, status: :ok
-      else
-        render_unprocessable_entity(user)
-      end
+      update_user(user)
     end
 
     # TODO: 追加予定
@@ -85,24 +84,12 @@ module V1
       )
     end
 
-    def render_forbidden(method)
-      render json: { errors: "You are not authorized to #{method} this user" }, status: :forbidden
-    end
-
-    def render_invalid_parameters(message)
-      render json: { errors: message }, status: :unprocessable_entity
-    end
-
-    def render_no_content
-      render json: {}, status: :no_content
-    end
-
-    def render_unprocessable_entity(object)
-      render json: { errors: object.errors.full_messages }, status: :unprocessable_entity
-    end
-
-    def render_user_not_found
-      render json: { errors: 'User not found' }, status: :not_found
+    def update_user(user)
+      if user.update(params_user_update)
+        render json: user, status: :ok
+      else
+        render_unprocessable_entity(user)
+      end
     end
   end
 end

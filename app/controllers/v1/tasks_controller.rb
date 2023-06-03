@@ -12,7 +12,7 @@ module V1
 
     def show
       task = find_task
-      return render_not_found unless task
+      return render_not_found('Task') unless task
 
       render json: serialize_task_with_user(task), status: :ok
     end
@@ -20,17 +20,17 @@ module V1
     def create
       task = Task.new(task_params)
       task.user_id = params[:user_id]
-      task.save ? render_no_content : render_invalid_parameters(task.errors)
+      task.save ? render_no_content : render_unprocessable_entity(task)
     end
 
     def update
       task = find_task
-      task.update(task_params) ? render_no_content : render_invalid_parameters(task.errors)
+      task.update(task_params) ? render_no_content : render_unprocessable_entity(task)
     end
 
     def destroy
       task = find_task
-      task.destroy ? render_no_content : render_not_destroyed
+      task.destroy ? render_no_content : render_not_destroyed('Task')
     end
 
     private
@@ -53,7 +53,9 @@ module V1
                         'delete'
                       end
 
-      render_forbidden(error_message) if error_message && task.user_id != current_user_id
+      return unless error_message && task.user_id != current_user_id
+
+      render_forbidden("You are not authorized to #{message} this task")
     end
 
     def serialize_tasks_with_users(tasks)
@@ -64,26 +66,6 @@ module V1
       task_data = TaskSerializer.serialize_task(task)
       task_user = User.find(task.user_id)
       task_data.merge(user: TaskSerializer.serialize_user(task_user))
-    end
-
-    def render_forbidden(message)
-      render json: { errors: "You are not authorized to #{message} this task" }, status: :forbidden
-    end
-
-    def render_invalid_parameters(message)
-      render json: { errors: message }, status: :unprocessable_entity
-    end
-
-    def render_no_content
-      render json: {}, status: :no_content
-    end
-
-    def render_not_destroyed
-      render json: { errors: 'Task could not be destroyed' }, status: :unprocessable_entity
-    end
-
-    def render_not_found
-      render json: { errors: 'Task not found' }, status: :not_found
     end
   end
 end
