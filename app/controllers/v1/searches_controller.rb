@@ -24,11 +24,11 @@ module V1
     end
 
     def serialize_tasks(tasks)
-      TaskSerializer.serialize_tasks_collection(tasks.order('tasks.id DESC'))
+      TaskSerializer.serialize_tasks_collection(tasks.includes(:user).order('tasks.id DESC'))
     end
 
     def serialize_users(users)
-      UserSerializer.serialize_users_collection(users.order('users.id DESC'))
+      UserSerializer.serialize_users_collection(users.includes(:tasks).order('users.id DESC'))
     end
 
     def valid_model?(model)
