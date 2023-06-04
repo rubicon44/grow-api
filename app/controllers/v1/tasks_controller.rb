@@ -6,8 +6,14 @@ module V1
     def index
       # TODO: ページネーションの追加
       tasks = Task.includes(:user).order('tasks.id DESC')
+
+      current_user = User.find_by(id: params[:current_user_id])
+      following_user_ids = current_user.followings.pluck(:id)
+      following_user_tasks = Task.includes(:user).where(user_id: following_user_ids).order('tasks.id DESC')
+
       tasks_data = serialize_tasks_with_users(tasks)
-      render json: { tasks: tasks_data }, status: :ok
+      following_user_tasks_data = serialize_tasks_with_users(following_user_tasks)
+      render json: { tasks: tasks_data, following_user_tasks: following_user_tasks_data }, status: :ok
     end
 
     def show

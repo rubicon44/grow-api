@@ -12,21 +12,20 @@ class Search < ApplicationRecord
     end
   end
 
-  # TODO: User検索で「username」「nickname」どちらでも検索できるようにする。
   def self.search_users(contents, method)
     users = if method == 'perfect'
-              User.where(username: contents)
+              User.where('username = ? OR nickname = ?', contents, contents)
             else
-              User.where('username LIKE ?', "%#{contents}%")
+              User.where('username LIKE ? OR nickname LIKE ?', "%#{contents}%", "%#{contents}%")
             end
     { users: users }
   end
 
   def self.search_tasks(contents, method)
     tasks = if method == 'perfect'
-              Task.where('title LIKE ?', contents).or(Task.where('content LIKE ?', contents))
+              Task.where('title = ? OR content = ?', contents, contents)
             else
-              Task.where('title LIKE ?', "%#{contents}%")
+              Task.where('title LIKE ? OR content LIKE ?', "%#{contents}%", "%#{contents}%")
             end
     { tasks: tasks }
   end
