@@ -18,12 +18,12 @@ module V1
       task = Task.find_by(id: like_params[:task_id])
 
       return render_not_found('Task') if task.nil?
-      return render_unprocessable_entity(current_user) if current_user.nil?
-      return render_unprocessable_entity(task) if task.nil?
       return render_user_already_liked('User has already liked this task') if Like.user_already_liked?(current_user,
                                                                                                        task)
+      return render_unprocessable_entity(current_user) if current_user.nil?
+      return render_unprocessable_entity(task) if task.nil?
 
-      Like.create_like_and_notification(current_user, task) ? render_no_content : render_not_created('Like')
+      create_like(current_user, task)
     end
 
     def destroy
@@ -44,6 +44,14 @@ module V1
     # TODO: delete時のstrong_parameterを作成するか検討。
     def params_like_create
       params.permit(:task_id, :current_user_id)
+    end
+
+    def create_like(current_user, task)
+      if Like.create_like_and_notification(current_user, task)
+        render_no_content
+      else
+        render_not_created('Like')
+      end
     end
 
     def delete_like(current_user, task)

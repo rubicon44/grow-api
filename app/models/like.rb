@@ -8,8 +8,9 @@ class Like < ApplicationRecord
 
   def self.create_like_and_notification(current_user, task)
     current_user.like(task)
-    noti_task = Task.find(task.id)
+    noti_task = Task.find_by(id: task.id)
     noti_task.create_notification_like!(current_user)
+    true
   end
 
   def self.user_already_liked?(current_user, task)
