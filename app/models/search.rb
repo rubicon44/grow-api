@@ -13,20 +13,12 @@ class Search < ApplicationRecord
   end
 
   def self.search_users(contents, method)
-    users = if method == 'perfect'
-              User.where('username = ? OR nickname = ?', contents, contents)
-            else
-              User.where('username LIKE ? OR nickname LIKE ?', "%#{contents}%", "%#{contents}%")
-            end
+    users = (User.where('username LIKE ? OR nickname LIKE ?', "%#{contents}%", "%#{contents}%") if method == 'partial')
     { users: users }
   end
 
   def self.search_tasks(contents, method)
-    tasks = if method == 'perfect'
-              Task.where('title = ? OR content = ?', contents, contents)
-            else
-              Task.where('title LIKE ? OR content LIKE ?', "%#{contents}%", "%#{contents}%")
-            end
+    tasks = (Task.where('title LIKE ? OR content LIKE ?', "%#{contents}%", "%#{contents}%") if method == 'partial')
     { tasks: tasks }
   end
 end
