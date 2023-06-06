@@ -4,15 +4,15 @@ module V1
   class TasksController < ApiController
     before_action :require_task_owner, only: %i[update destroy]
     def index
-      # TODO: ページネーションの追加
+      page = params[:page].to_i
+      page_size = params[:page_size].to_i
+
       tasks = Task.includes(:user).order('tasks.id DESC')
+      following_user_tasks = fetch_following_user_tasks
 
-      current_user = User.find_by(id: params[:current_user_id])
-      following_user_ids = current_user.followings.pluck(:id)
-      following_user_tasks = Task.includes(:user).where(user_id: following_user_ids).order('tasks.id DESC')
+      tasks_data = serialize_tasks_with_users(paginate_tasks(tasks, page, page_size))
+      following_user_tasks_data = serialize_tasks_with_users(paginate_tasks(following_user_tasks, page, page_size))
 
-      tasks_data = serialize_tasks_with_users(tasks)
-      following_user_tasks_data = serialize_tasks_with_users(following_user_tasks)
       render json: { tasks: tasks_data, following_user_tasks: following_user_tasks_data }, status: :ok
     end
 
@@ -62,6 +62,16 @@ module V1
       return unless error_message && task.user_id != current_user_id
 
       render_forbidden("You are not authorized to #{message} this task")
+    end
+
+    def fetch_following_user_tasks
+      current_user = User.find_by(id: params[:current_user_id])
+      following_user_ids = current_user.followings.pluck(:id)
+      Task.includes(:user).where(user_id: following_user_ids).order('tasks.id DESC')
+    end
+
+    def paginate_tasks(tasks, page, page_size)
+      tasks.limit(page_size).offset((page - 1) * page_size)
     end
 
     def serialize_tasks_with_users(tasks)
