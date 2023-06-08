@@ -10,13 +10,12 @@ module V1
       page = params[:page].to_i
       page_size = params[:page_size].to_i
 
-      tasks = fetch_tasks(user, page, page_size)
-      liked_tasks = fetch_liked_tasks(user, page, page_size)
+      data_type = params[:data_type]
+      serialized_user = UserSerializer.serialize_user(user)
 
-      serialized_user = UserSerializer.serialize_user(user).merge(
-        tasks: TaskSerializer.serialize_tasks_collection(tasks),
-        liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
-      )
+      serialized_user = add_tasks_and_liked_tasks(serialized_user, user, page, page_size) if data_type == 'default'
+      serialized_user = add_tasks(serialized_user, user, page, page_size) if data_type == 'tasks'
+      serialized_user = add_liked_tasks(serialized_user, user, page, page_size) if data_type == 'likedTasks'
 
       render json: serialized_user, status: :ok
     end
@@ -84,6 +83,32 @@ module V1
       elsif request.method == 'DELETE'
         user_id == current_user_id
       end
+    end
+
+    def add_tasks_and_liked_tasks(serialized_user, user, page, page_size)
+      tasks = fetch_tasks(user, page, page_size)
+      liked_tasks = fetch_liked_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        tasks: TaskSerializer.serialize_tasks_collection(tasks),
+        liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
+      )
+    end
+
+    def add_tasks(serialized_user, user, page, page_size)
+      tasks = fetch_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        tasks: TaskSerializer.serialize_tasks_collection(tasks)
+      )
+    end
+
+    def add_liked_tasks(serialized_user, user, page, page_size)
+      liked_tasks = fetch_liked_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
+      )
     end
 
     def fetch_tasks(user, page, page_size)
