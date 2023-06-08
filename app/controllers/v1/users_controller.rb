@@ -5,12 +5,19 @@ module V1
     skip_before_action :check_authenticate!, only: %i[create], raise: false
     def show
       user = find_user
+      return render_not_found('User') if user.nil?
 
-      if user.nil?
-        render_not_found('User')
-      else
-        render json: serialize_user_data(user), status: :ok
-      end
+      page = params[:page].to_i
+      page_size = params[:page_size].to_i
+
+      data_type = params[:data_type]
+      serialized_user = UserSerializer.serialize_user(user)
+
+      serialized_user = add_tasks_and_liked_tasks(serialized_user, user, page, page_size) if data_type == 'default'
+      serialized_user = add_tasks(serialized_user, user, page, page_size) if data_type == 'tasks'
+      serialized_user = add_liked_tasks(serialized_user, user, page, page_size) if data_type == 'likedTasks'
+
+      render json: serialized_user, status: :ok
     end
 
     def followings
@@ -78,11 +85,44 @@ module V1
       end
     end
 
-    def serialize_user_data(user)
-      UserSerializer.serialize_user(user).merge(
-        tasks: TaskSerializer.serialize_tasks_collection(user.tasks.includes(:user).order('tasks.id DESC')),
-        liked_tasks: TaskSerializer.serialize_tasks_collection(user.like_tasks.includes(:user).order('likes.id DESC'))
+    def add_tasks_and_liked_tasks(serialized_user, user, page, page_size)
+      tasks = fetch_tasks(user, page, page_size)
+      liked_tasks = fetch_liked_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        tasks: TaskSerializer.serialize_tasks_collection(tasks),
+        liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
       )
+    end
+
+    def add_tasks(serialized_user, user, page, page_size)
+      tasks = fetch_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        tasks: TaskSerializer.serialize_tasks_collection(tasks)
+      )
+    end
+
+    def add_liked_tasks(serialized_user, user, page, page_size)
+      liked_tasks = fetch_liked_tasks(user, page, page_size)
+
+      serialized_user.merge(
+        liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
+      )
+    end
+
+    def fetch_tasks(user, page, page_size)
+      user.tasks.includes(:user)
+          .order('tasks.id DESC')
+          .limit(page_size)
+          .offset((page - 1) * page_size)
+    end
+
+    def fetch_liked_tasks(user, page, page_size)
+      user.like_tasks.includes(:user)
+          .order('likes.id DESC')
+          .limit(page_size)
+          .offset((page - 1) * page_size)
     end
 
     def update_user(user)
