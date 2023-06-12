@@ -8,17 +8,17 @@ class Search < ApplicationRecord
     when 'user'
       search_users(contents, method)
     else
-      { tasks: [], users: [] }
+      []
     end
   end
 
   def self.search_tasks(contents, method)
     tasks = Task.where('title LIKE ? OR content LIKE ?', "%#{contents}%", "%#{contents}%") if method == 'partial'
-    { tasks: tasks || [] }
+    tasks || []
   end
 
   def self.search_users(contents, method)
     users = User.where('username LIKE ? OR nickname LIKE ?', "%#{contents}%", "%#{contents}%") if method == 'partial'
-    { users: users || [] }
+    users || []
   end
 end

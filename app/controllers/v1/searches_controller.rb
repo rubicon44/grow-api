@@ -42,19 +42,17 @@ module V1
     end
 
     def add_tasks(results, page, page_size)
-      paginated_results = {}
-      if results[:tasks].present?
-        paginated_results[:tasks] =
-          serialize_tasks(paginate_tasks(results[:tasks], page, page_size))
+      if results.present?
+        paginated_results =
+          serialize_tasks(paginate_tasks(results, page, page_size))
       end
       paginated_results
     end
 
     def add_users(results, page, page_size)
-      paginated_results = {}
-      if results[:users].present?
-        paginated_results[:users] =
-          serialize_users(paginate_users(results[:users], page, page_size))
+      if results.present?
+        paginated_results =
+          serialize_users(paginate_users(results, page, page_size))
       end
       paginated_results
     end
