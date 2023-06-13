@@ -59,10 +59,12 @@ jobs:
 
       - name: Build package
         run: |
-          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+          mkdir deployment-package
+          zip -r deployment-package.zip deployment-package -x deployment-package/\* -x .git/\* -x .github/\* -x deploy.yml
 
       - name: Move files to root directory
         run: |
+          unzip deployment-package.zip -d deployment-package
           mv deployment-package/* .
           rm -r deployment-package
 
