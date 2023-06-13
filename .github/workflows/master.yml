@@ -1,3 +1,4 @@
+# test
 on:
   push:
     branches:
@@ -71,4 +72,3 @@ jobs:
         run: |
           aws elasticbeanstalk create-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ github.sha }} --source-bundle S3Bucket=${{ env.S3_BUCKET_NAME }},S3Key=deployment-package.zip
           aws elasticbeanstalk update-environment --environment-name ${{ env.AWS_ENV_NAME }} --version-label ${{ github.sha }}
-
