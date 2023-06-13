@@ -57,6 +57,11 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
+      - name: Move files to root directory
+        run: |
+          mv deployment-package/* .
+          rm -r deployment-package
+
       - name: Build package
         run: |
           zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
