@@ -68,4 +68,4 @@ jobs:
           region: ${{ env.AWS_REGION }}
           version_label: ${{ github.sha }}
           # docker_image: ${{ env.IMAGE_NAME }}
-          deployment_package: deployment-package.zip
+          # deployment_package: deployment-package.zip
