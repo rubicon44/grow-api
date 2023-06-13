@@ -55,6 +55,10 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
+      - name: Build package
+        run: |
+          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+
       - name: Create S3 bucket
         run: |
           aws s3api create-bucket --bucket ${{ env.S3_BUCKET_NAME }} --region $AWS_REGION
