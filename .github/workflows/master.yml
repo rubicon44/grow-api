@@ -59,12 +59,9 @@ jobs:
 
       - name: Build package
         run: |
-          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
-
-      - name: Unzip deployment package
-        run: |
-          unzip deployment-package.zip -d deployment-package
-          mv deployment-package/* .
+          mkdir deployment-package
+          cp -R app config lib public ... deployment-package
+          zip -r deployment-package.zip deployment-package/
           rm -r deployment-package
 
       - name: Create S3 bucket
