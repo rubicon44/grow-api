@@ -60,7 +60,7 @@ jobs:
       - name: Build package
         run: |
           mkdir deployment-package
-          cp -R app config lib public ... deployment-package
+          cp -R . deployment-package/
           zip -r deployment-package.zip deployment-package/
           rm -r deployment-package
 
