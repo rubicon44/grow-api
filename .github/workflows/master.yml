@@ -13,6 +13,7 @@ env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
   AWS_APP_NAME: ${{ secrets.AWS_APP_NAME }}
   AWS_ENV_NAME: ${{ secrets.AWS_ENV_NAME }}
+  S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
 
 jobs:
   deploy:
@@ -54,19 +55,16 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
-      - name: Build package
+      - name: Create S3 bucket
         run: |
-          zip -r deployment-package.zip . -x .git/\* -x .github/\* -x deploy.yml
+          aws s3api create-bucket --bucket ${{ env.S3_BUCKET_NAME }} --region $AWS_REGION
+
+      - name: Upload deployment package to S3
+        run: |
+          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET_NAME }}/deployment-package.zip
 
       - name: Deploy to ElasticBeanstalk
-        uses: einaregilsson/beanstalk-deploy@v14
-        with:
-          aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ env.AWS_APP_NAME }}
-          environment_name: ${{ env.AWS_ENV_NAME }}
-          region: ${{ env.AWS_REGION }}
-          version_label: ${{ github.sha }}
-          docker_image: ${{ env.IMAGE_NAME }}
-          # deployment_package: deployment-package.zip
-          # use_existing_version_if_available: true
+        run: |
+          aws elasticbeanstalk create-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ github.sha }} --source-bundle S3Bucket=${{ env.S3_BUCKET_NAME }},S3Key=deployment-package.zip
+          aws elasticbeanstalk update-environment --environment-name ${{ env.AWS_ENV_NAME }} --version-label ${{ github.sha }}
+
