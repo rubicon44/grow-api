@@ -73,7 +73,7 @@ jobs:
 
       - name: Set version label
         id: set_version_label
-        run: echo "EB_VERSION_LABEL=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        run: echo "EB_VERSION_LABEL=${{ env.EB_VERSION_LABEL }}" >> $GITHUB_ENV
 
       - name: Deploy to ElasticBeanstalk
         run: |
