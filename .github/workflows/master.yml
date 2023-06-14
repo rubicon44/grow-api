@@ -75,12 +75,7 @@ jobs:
         id: set_version_label
         run: echo "EB_VERSION_LABEL=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # - name: Deploy to ElasticBeanstalk
-      #   run: |
-      #     aws elasticbeanstalk create-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ env.EB_VERSION_LABEL }} --source-bundle S3Bucket=${{ env.S3_BUCKET_NAME }},S3Key=deployment-package.zip
-      #     aws elasticbeanstalk update-environment --environment-name ${{ env.AWS_ENV_NAME }} --version-label ${{ env.EB_VERSION_LABEL }}
       - name: Deploy to ElasticBeanstalk
         run: |
-          eb init ${{ env.AWS_APP_NAME }} --region ${{ env.AWS_REGION }}
-          eb use ${{ env.AWS_ENV_NAME }}
-          eb deploy --label ${{ env.EB_VERSION_LABEL }}
+          aws elasticbeanstalk create-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ env.EB_VERSION_LABEL }} --source-bundle S3Bucket=${{ env.S3_BUCKET_NAME }},S3Key=deployment-package.zip
+          aws elasticbeanstalk update-environment --environment-name ${{ env.AWS_ENV_NAME }} --version-label ${{ env.EB_VERSION_LABEL }}
