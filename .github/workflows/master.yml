@@ -13,7 +13,7 @@ env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
   AWS_APP_NAME: ${{ secrets.AWS_APP_NAME }}
   AWS_ENV_NAME: ${{ secrets.AWS_ENV_NAME }}
-  EB_VERSION_LABEL: ${{ secrets.EB_VERSION_LABEL }}
+  EB_VERSION_LABEL: "grow-api-17"
   S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
 
 jobs:
