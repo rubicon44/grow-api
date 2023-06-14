@@ -15,6 +15,7 @@ env:
   AWS_ENV_NAME: ${{ secrets.AWS_ENV_NAME }}
   EB_VERSION_LABEL: "grow-api-17"
   S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+  SOLUTION_STACK: "64bit Amazon Linux 2 v3.5.8 running Docker"
 
 jobs:
   deploy:
@@ -65,7 +66,7 @@ jobs:
 
       - name: Create Elastic Beanstalk environment
         run: |
-          aws elasticbeanstalk create-environment --application-name ${{ env.AWS_APP_NAME }} --environment-name ${{ env.AWS_ENV_NAME }} --solution-stack-name "64bit Amazon Linux 2 v3.4.0 running Ruby 2.7"
+          aws elasticbeanstalk create-environment --application-name ${{ env.AWS_APP_NAME }} --environment-name ${{ env.AWS_ENV_NAME }} --solution-stack-name "${{ env.SOLUTION_STACK }}"
           aws elasticbeanstalk wait environment-terminated --application-name ${{ env.AWS_APP_NAME }} --environment-name ${{ env.AWS_ENV_NAME }}
 
       - name: Create S3 bucket
