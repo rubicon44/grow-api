@@ -48,9 +48,6 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws configure set default.region $AWS_REGION
 
-      - name: Show directory contents
-        run: ls -la
-
       - name: Build Docker image
         env:
           IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
