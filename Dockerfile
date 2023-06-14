@@ -2,10 +2,7 @@ FROM ruby:2.7.7
 
 RUN apt-get update && \
     apt-get install -y build-essential \
-                       libmariadb-dev-compat \
-                       libpq-dev \
-                       nodejs \
-                       yarn
+                       libmariadb-dev-compat
 
 RUN mkdir /grow-api
 ENV APP_ROOT /grow-api
