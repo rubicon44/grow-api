@@ -71,10 +71,6 @@ jobs:
         run: |
           aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET_NAME }}/deployment-package.zip
 
-      - name: Delete existing application version
-        run: |
-          aws elasticbeanstalk delete-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ env.EB_VERSION_LABEL }} --delete-source-bundle
-
       - name: Set version label
         id: set_version_label
         run: echo "EB_VERSION_LABEL=${{ env.EB_VERSION_LABEL }}" >> $GITHUB_ENV
