@@ -11,10 +11,6 @@ env:
   ECR_REPOSITORY_NAME: "grow-api"
   ECR_IMAGE_TAG: "latest"
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  AWS_APP_NAME: ${{ secrets.AWS_APP_NAME }}
-  AWS_ENV_NAME: ${{ secrets.AWS_ENV_NAME }}
-  EB_VERSION_LABEL: ${{ secrets.EB_VERSION_LABEL }}
-  S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
 
 jobs:
   deploy:
@@ -56,26 +52,6 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
-      - name: Build package
-        run: |
-          mkdir deployment-package
-          find . -maxdepth 1 -not -name 'deployment-package' -exec cp -R {} deployment-package/ \;
-          zip -r deployment-package.zip deployment-package/
-          rm -r deployment-package
-
-      - name: Create S3 bucket
-        run: |
-          aws s3api create-bucket --bucket ${{ env.S3_BUCKET_NAME }} --region $AWS_REGION
-
-      - name: Upload deployment package to S3
-        run: |
-          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET_NAME }}/deployment-package.zip
-
-      - name: Set version label
-        id: set_version_label
-        run: echo "EB_VERSION_LABEL=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      - name: Deploy to ElasticBeanstalk
-        run: |
-          aws elasticbeanstalk create-application-version --application-name ${{ env.AWS_APP_NAME }} --version-label ${{ env.EB_VERSION_LABEL }} --source-bundle S3Bucket=${{ env.S3_BUCKET_NAME }},S3Key=deployment-package.zip
-          aws elasticbeanstalk update-environment --environment-name ${{ env.AWS_ENV_NAME }} --version-label ${{ env.EB_VERSION_LABEL }}
+      # - name: Deploy to ECS
+      #   run: |
+      #     aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment
