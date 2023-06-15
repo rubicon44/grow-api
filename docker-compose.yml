@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3308:${DB_PORT}"
+      - "3306:${DB_PORT}"
     volumes:
       - db-data:/var/lib/mysql
   app:
