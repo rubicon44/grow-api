@@ -52,6 +52,6 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
-      - name: Deploy to ECS
-        run: |
-          aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment
+      # - name: Deploy to ECS
+      #   run: |
+      #     aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment
