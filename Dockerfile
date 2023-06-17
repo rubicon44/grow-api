@@ -20,4 +20,5 @@ ADD . $APP_ROOT
 RUN mkdir -p tmp/sockets tmp/pids
 COPY entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
+
 ENTRYPOINT ["sh", "entrypoint.sh"]

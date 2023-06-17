@@ -20,8 +20,6 @@ services:
     command: "bundle exec rails s -p 3000 -b 0.0.0.0"
     volumes:
       - .:/grow-api
-      # - public-data:/grow-api/public
-      # - tmp-data:/grow-api/tmp
       - log-data:/grow-api/log
     ports:
       - "3000:3000"
@@ -29,19 +27,7 @@ services:
       - db
     tty: true
     stdin_open: true
-  # web:
-  #   build:
-  #     context: containers/nginx
-  #   volumes:
-  #     - public-data:/grow-api/public
-  #     - tmp-data:/grow-api/tmp
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - app
 
 volumes:
-  # public-data:
-  # tmp-data:
   log-data:
   db-data:
