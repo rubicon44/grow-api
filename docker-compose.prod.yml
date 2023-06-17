@@ -9,9 +9,10 @@ services:
   app:
     build: .
     environment:
-      DB_USER: ${RDS_USERNAME}
-      DB_PASSWORD: ${RDS_PASSWORD}
-      DB_HOST: ${RDS_HOSTNAME}
+      RDS_DB_NAME: ${RDS_DB_NAME}
+      RDS_USERNAME: ${RDS_USERNAME}
+      RDS_PASSWORD: ${RDS_PASSWORD}
+      RDS_HOSTNAME: ${RDS_HOSTNAME}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
       # RAILS_ENV: production
       RAILS_SERVE_STATIC_FILES: 'true'
