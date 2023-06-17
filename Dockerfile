@@ -1,5 +1,8 @@
 FROM ruby:2.7.7
 
+ARG RAILS_ENV
+ENV RAILS_ENV=$RAILS_ENV
+
 RUN apt-get update && \
     apt-get install -y build-essential \
                        libmariadb-dev-compat
