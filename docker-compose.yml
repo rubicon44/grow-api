@@ -2,22 +2,46 @@ version: '3'
 services:
   db:
     image: mysql:8.0.32
+    # platform: linux/amd64
     environment:
-      MYSQL_ROOT_PASSWORD: ${RDS_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:${RDS_PORT}"
+      - "3306:${DB_PORT}"
+    volumes:
+      - db-data:/var/lib/mysql
   app:
     build: .
     environment:
-      DB_USER: ${RDS_USERNAME}
-      DB_PASSWORD: ${RDS_PASSWORD}
-      DB_HOST: ${RDS_HOSTNAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      RAILS_ENV: production
+      RAILS_ENV: development
     command: "bundle exec rails s -p 3000 -b 0.0.0.0"
+    volumes:
+      - .:/grow-api
+      # - public-data:/grow-api/public
+      # - tmp-data:/grow-api/tmp
+      - log-data:/grow-api/log
     ports:
       - "3000:3000"
     depends_on:
       - db
     tty: true
     stdin_open: true
+  # web:
+  #   build:
+  #     context: containers/nginx
+  #   volumes:
+  #     - public-data:/grow-api/public
+  #     - tmp-data:/grow-api/tmp
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - app
+
+volumes:
+  # public-data:
+  # tmp-data:
+  log-data:
+  db-data:
