@@ -11,6 +11,8 @@ env:
   ECR_REPOSITORY_NAME: "grow-api"
   ECR_IMAGE_TAG: "latest"
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+  ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
 
 jobs:
   deploy:
@@ -52,6 +54,6 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
-      # - name: Deploy to ECS
-      #   run: |
-      #     aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER_NAME }} --service ${{ env.ECS_SERVICE_NAME }} --force-new-deployment
