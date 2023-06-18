@@ -10,17 +10,18 @@ module V1
 
     def check_authenticate!
       token = request.cookies['token']
+      render json: { errors: token }, status: :unauthorized
 
-      return render_unauthorized('Authorization token is missing') if token.blank?
+      # return render_unauthorized('Authorization token is missing') if token.blank?
 
-      begin
-        decoded = JsonWebToken.decode(token)
-        User.find_by(email: decoded[:user_email])
-      rescue ActiveRecord::RecordNotFound => e
-        render_unauthorized(e.message)
-      rescue JWT::DecodeError => e
-        render_unauthorized(e.message)
-      end
+      # begin
+      #   decoded = JsonWebToken.decode(token)
+      #   User.find_by(email: decoded[:user_email])
+      # rescue ActiveRecord::RecordNotFound => e
+      #   render_unauthorized(e.message)
+      # rescue JWT::DecodeError => e
+      #   render_unauthorized(e.message)
+      # end
     end
 
     def render_unauthorized(errors)
