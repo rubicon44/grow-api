@@ -9,7 +9,7 @@ module V1
     private
 
     def check_authenticate!
-      token = request.cookies['idToken']
+      token = request.headers['Authorization']
 
       return render_unauthorized('Authorization token is missing') if token.blank?
 
