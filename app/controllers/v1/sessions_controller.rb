@@ -5,7 +5,7 @@ module V1
     skip_before_action :check_authenticate!, only: %i[create], raise: false
 
     def create
-      token = request.headers['idToken']
+      token = request.headers['Authorization']
       respon = Firebase.get_user_by_token(token)
       response = JSON.parse(respon)
 
