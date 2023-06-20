@@ -40,6 +40,8 @@ module V1
     def create
       user = User.new(params_user_create)
 
+      return render_no_content if User.exists?(firebase_id: user.firebase_id)
+
       if [user.nickname, user.username, user.email, user.firebase_id].any?(&:nil?)
         return render_unprocessable_entity(user)
       end
