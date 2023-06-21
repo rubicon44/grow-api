@@ -66,6 +66,8 @@ module V1
 
     def fetch_following_user_tasks
       current_user = User.find_by(id: params[:current_user_id])
+      return [] unless current_user
+
       following_user_ids = current_user.followings.pluck(:id)
       Task.includes(:user).where(user_id: following_user_ids).order('tasks.id DESC')
     end
