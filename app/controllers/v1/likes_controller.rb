@@ -4,7 +4,7 @@ module V1
   class LikesController < ApiController
     def index
       task = Task.includes(:likes).find_by(id: params[:task_id])
-      return render_not_found('Task') if task.nil?
+      return render_not_found('Task') unless task
 
       likes = Like.where(task_id: params[:task_id])
       like_count = likes.count
@@ -17,11 +17,10 @@ module V1
       current_user = User.find_by(id: like_params[:current_user_id])
       task = Task.find_by(id: like_params[:task_id])
 
-      return render_not_found('Task') if task.nil?
-      return render_user_already_liked('User has already liked this task') if Like.user_already_liked?(current_user,
-                                                                                                       task)
-      return render_unprocessable_entity(current_user) if current_user.nil?
-      return render_unprocessable_entity(task) if task.nil?
+      return render_not_found('Task') unless task
+      return render_unprocessable_entity(task) if current_user.nil?
+      return render_conflict('User has already liked this task') if Like.user_already_liked?(current_user,
+                                                                                             task)
 
       create_like(current_user, task)
     end
@@ -31,8 +30,7 @@ module V1
       task = Task.find_by(id: params[:task_id])
       likes = Like.where(task_id: params[:task_id])
 
-      return render_unprocessable_entity(current_user) if current_user.nil?
-      return render_not_found('Task') if task.nil?
+      return render_not_found('Task') unless task
       return render_not_found('Likes') if likes.empty?
       return render_forbidden("Cannot delete other user's likes") unless Like.user_owns_likes?(current_user, likes)
 

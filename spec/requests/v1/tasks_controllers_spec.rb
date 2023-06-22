@@ -2,6 +2,12 @@
 
 require 'rails_helper'
 
+# todo2: following_tasksも追加する
+# todo3: ページネーションテストも追加する
+# todo4: エラーレスポンスのフォーマットを統一する
+## 1: expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+## 2: expect(response_body['errors']).to include("Title exceeds maximum length")
+# todo5: エラーレスポンスの修正(例: 'は255文字以内で入力してください'を通す)
 # todo6: 「入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)」を処理
 # todo7: describe, context, itのテストケースの分類を揃える
 # todo8: エラー文言の修正(エラー文言の形式を揃える。英語と日本語のどちらを使用すべきか。完全でない文言はそのままで良いのか。)
@@ -9,11 +15,19 @@ require 'rails_helper'
 
 RSpec.describe V1::TasksController, type: :request do
   let!(:user) { FactoryBot.create(:user) }
-  let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
+  let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
+  let(:csrf_token) do
+    get '/v1/csrf_token'
+    JSON.parse(response.body)['csrf_token']['value']
+  end
+  let(:csrf_token_headers) { { 'X-CSRF-Token' => csrf_token } }
+  let(:csrf_token_auth_headers) do
+    auth_headers.merge('X-CSRF-Token' => csrf_token)
+  end
 
   describe 'GET #index (not logged in)' do
     it 'returns 401' do
-      get '/v1/tasks'
+      get '/v1/tasks', headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -22,9 +36,10 @@ RSpec.describe V1::TasksController, type: :request do
   describe 'GET #index (logged in)' do
     let!(:task1) { FactoryBot.create(:task, title: 'test_task1') }
     let!(:task2) { FactoryBot.create(:task, title: 'test_task2') }
+
     context 'when tasks exist' do
       it 'returns a list of tasks & 200' do
-        get '/v1/tasks', headers: headers
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { currentUserId: user.id, page: 1, page_size: 2 }
         expect(response).to have_http_status(200)
         expect(response.body).to include(task1.title)
         expect(response.body).to include(task2.title)
@@ -34,9 +49,9 @@ RSpec.describe V1::TasksController, type: :request do
     context 'when tasks do not exist' do
       it 'returns an empty list & 200' do
         Task.destroy_all
-        get '/v1/tasks', headers: headers
+        get '/v1/tasks', headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
-        expect(response.body).to eq('{"tasks":[]}')
+        expect(response.body).to eq('{"tasks":[],"following_user_tasks":[]}')
       end
     end
   end
@@ -44,7 +59,7 @@ RSpec.describe V1::TasksController, type: :request do
   describe 'GET #show (not logged in)' do
     let!(:task) { FactoryBot.create(:task, title: 'test_task_show1') }
     it 'returns 401' do
-      get "/v1/tasks/#{task.id}"
+      get "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -54,7 +69,7 @@ RSpec.describe V1::TasksController, type: :request do
     let!(:task) { FactoryBot.create(:task, title: 'test_task_show1') }
     context 'when task exist' do
       it 'returns a task & 200' do
-        get "/v1/tasks/#{task.id}", headers: headers
+        get "/v1/tasks/#{task.id}", headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
         expect(response.body).to include(task.title)
       end
@@ -63,16 +78,16 @@ RSpec.describe V1::TasksController, type: :request do
     context 'when task do not exist' do
       it 'returns an empty task & 404' do
         Task.destroy_all
-        get "/v1/tasks/#{task.id}", headers: headers
+        get "/v1/tasks/#{task.id}", headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
-        expect(response.body).to eq("{\"errors\":\"Couldn't find Task with 'id'=#{task.id}\"}")
+        expect(response.body).to eq('{"errors":"Task not found"}')
       end
     end
   end
 
   describe 'GET #create (not logged in)' do
     it 'returns 401' do
-      post '/v1/tasks'
+      post '/v1/tasks', headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -84,8 +99,9 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create1', content: 'test_task_create1'),
           user_id: user.id }
       end
+
       it 'returns 204' do
-        post '/v1/tasks', params: valid_params1, headers: headers
+        post '/v1/tasks', params: valid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(response.body).to be_empty
         expect(Task.count).to eq(1)
@@ -97,7 +113,7 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create2', content: ''), user_id: user.id }
       end
       it 'when content is empty & returns 204' do
-        post '/v1/tasks', params: valid_params2, headers: headers
+        post '/v1/tasks', params: valid_params2, headers: csrf_token_auth_headers
         expect(response.status).to eq(204)
         expect(response.body).to be_empty
         expect(Task.count).to eq(1)
@@ -110,7 +126,7 @@ RSpec.describe V1::TasksController, type: :request do
           user_id: user.id }
       end
       it 'when both start_date and end_date are blank & returns 204' do
-        post '/v1/tasks', params: valid_params3, headers: headers
+        post '/v1/tasks', params: valid_params3, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_create3')
@@ -123,7 +139,7 @@ RSpec.describe V1::TasksController, type: :request do
           user_id: user.id }
       end
       it 'when start_date is blank and returns 204' do
-        post '/v1/tasks', params: valid_params4, headers: headers
+        post '/v1/tasks', params: valid_params4, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_create4')
@@ -135,7 +151,7 @@ RSpec.describe V1::TasksController, type: :request do
           user_id: user.id }
       end
       it 'when end_date is blank and returns 204' do
-        post '/v1/tasks', params: valid_params5, headers: headers
+        post '/v1/tasks', params: valid_params5, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_create5')
@@ -150,19 +166,21 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:invalid_params1) { { task: FactoryBot.attributes_for(:task, title: 'a' * 256) } }
       it 'when title is too long & returns 422' do
-        post '/v1/tasks', params: invalid_params1, headers: headers
+        post '/v1/tasks', params: invalid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['title']).to include('は255文字以内で入力してください')
+        expect(response_body['errors']).to include('Title exceeds maximum length')
+        # expect(response_body['errors']).to include('は255文字以内で入力してください')
       end
 
       # content
       let!(:invalid_params2) { { task: FactoryBot.attributes_for(:task, content: 'a' * 5001) } }
       it 'when content exceeds the maximum length & returns 422' do
-        post '/v1/tasks', params: invalid_params2, headers: headers
+        post '/v1/tasks', params: invalid_params2, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['content']).to include('は5000文字以内で入力してください')
+        expect(response_body['errors']).to include('Content exceeds maximum length')
+        # expect(response_body['errors']).to include('は5000文字以内で入力してください')
       end
 
       # status
@@ -170,10 +188,10 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4) } }
       it 'when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
-        post '/v1/tasks', params: invalid_params3, headers: headers
+        post '/v1/tasks', params: invalid_params3, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['status']).to include('には0、1、2、3以外の数値を入力しないでください')
+        expect(response_body['errors']).to include('Status is invalid')
       end
 
       # start_date、end_date
@@ -183,29 +201,29 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, start_date: '20230101', end_date: '20231231') }
       end
       it 'with invalid date format & returns 422' do
-        post '/v1/tasks', params: invalid_params4, headers: headers
+        post '/v1/tasks', params: invalid_params4, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['start_date']).to include('は不正な値です')
-        expect(response_body['errors']['end_date']).to include('は不正な値です')
+        expect(response_body['errors']).to include('Start date has invalid format')
+        expect(response_body['errors']).to include('End date has invalid format')
       end
 
       let!(:invalid_params5) do
         { task: FactoryBot.attributes_for(:task, start_date: '2023-01-011', end_date: '2023-12-311') }
       end
       it 'when start date and end date is exceeding the character limit & returns 422' do
-        post '/v1/tasks', params: invalid_params5, headers: headers
+        post '/v1/tasks', params: invalid_params5, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['start_date']).to include('は不正な値です')
-        expect(response_body['errors']['end_date']).to include('は不正な値です')
+        expect(response_body['errors']).to include('Start date has invalid format')
+        expect(response_body['errors']).to include('End date has invalid format')
       end
 
       let!(:invalid_params6) do
         { task: FactoryBot.attributes_for(:task, start_date: '2023-05-05', end_date: '2023-05-01') }
       end
       it 'when end_date is before start_date & returns 422' do
-        post '/v1/tasks', params: invalid_params6, headers: headers
+        post '/v1/tasks', params: invalid_params6, headers: csrf_token_auth_headers
         expect(response.status).to eq 422
         response_body = JSON.parse(response.body)
         expect(response_body['errors']).to include('End date must be after start date')
@@ -216,7 +234,7 @@ RSpec.describe V1::TasksController, type: :request do
   describe 'PUT #update (not logged in)' do
     let!(:task) { FactoryBot.create(:task, user: user) }
     it 'returns 401' do
-      put "/v1/tasks/#{task.id}"
+      put "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -224,13 +242,15 @@ RSpec.describe V1::TasksController, type: :request do
 
   describe 'PUT #update (logged in)' do
     let!(:task) { FactoryBot.create(:task, user: user) }
+
     context 'updates the requested task with valid params' do
       let!(:update_valid_params1) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update1', content: 'test_task_update1'),
           current_user_id: user.id }
       end
+
       it 'returns 204' do
-        put "/v1/tasks/#{task.id}", params: update_valid_params1, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_valid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(response.body).to be_empty
         expect(Task.count).to eq(1)
@@ -242,7 +262,7 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update2', content: ''), current_user_id: user.id }
       end
       it 'when content is empty & returns 204' do
-        put "/v1/tasks/#{task.id}", params: update_valid_params2, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_valid_params2, headers: csrf_token_auth_headers
         expect(response.status).to eq(204)
         expect(response.body).to be_empty
         expect(Task.count).to eq(1)
@@ -255,7 +275,7 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'when both start_date and end_date are blank & returns 204' do
-        put "/v1/tasks/#{task.id}", params: update_valid_params3, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_valid_params3, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_update3')
@@ -268,7 +288,7 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'when start_date is blank and returns 204' do
-        put "/v1/tasks/#{task.id}", params: update_valid_params4, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_valid_params4, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_update4')
@@ -280,7 +300,7 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'when end_date is blank and returns 204' do
-        put "/v1/tasks/#{task.id}", params: update_valid_params5, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_valid_params5, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(1)
         expect(Task.last.title).to eq('test_task_update5')
@@ -297,10 +317,10 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, title: 'a' * 256), current_user_id: user.id }
       end
       it 'when title is too long & returns 422' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params1, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['title']).to include('は255文字以内で入力してください')
+        expect(response_body['errors']).to include('Title exceeds maximum length')
       end
 
       # content
@@ -308,10 +328,10 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, content: 'a' * 5001), current_user_id: user.id }
       end
       it 'when content exceeds the maximum length & returns 422' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params2, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params2, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['content']).to include('は5000文字以内で入力してください')
+        expect(response_body['errors']).to include('Content exceeds maximum length')
       end
 
       # status
@@ -319,10 +339,10 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4), current_user_id: user.id } }
       it 'when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params3, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params3, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['status']).to include('には0、1、2、3以外の数値を入力しないでください')
+        expect(response_body['errors']).to include('Status is invalid')
       end
 
       # start_date、end_date
@@ -333,11 +353,11 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'with invalid date format & returns 422' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params4, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params4, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['start_date']).to include('は不正な値です')
-        expect(response_body['errors']['end_date']).to include('は不正な値です')
+        expect(response_body['errors']).to include('Start date has invalid format')
+        expect(response_body['errors']).to include('End date has invalid format')
       end
 
       let!(:update_invalid_params5) do
@@ -345,11 +365,11 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'with start date and end date exceeding the character limit & returns 422 ' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params5, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params5, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']['start_date']).to include('は不正な値です')
-        expect(response_body['errors']['end_date']).to include('は不正な値です')
+        expect(response_body['errors']).to include('Start date has invalid format')
+        expect(response_body['errors']).to include('End date has invalid format')
       end
 
       let!(:update_invalid_params6) do
@@ -357,7 +377,7 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'when end_date is before start_date & returns 422' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params6, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params6, headers: csrf_token_auth_headers
         expect(response.status).to eq 422
         response_body = JSON.parse(response.body)
         expect(response_body['errors']).to include('End date must be after start date')
@@ -370,10 +390,10 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user.id }
       end
       it 'returns 404' do
-        put '/v1/tasks/0', params: update_invalid_params7, headers: headers
+        put '/v1/tasks/0', params: update_invalid_params7, headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']).to include("Couldn't find Task with 'id'=0")
+        expect(response_body['errors']).to include('Task not found')
       end
     end
 
@@ -384,7 +404,7 @@ RSpec.describe V1::TasksController, type: :request do
           current_user_id: user2.id }
       end
       it 'returns 403' do
-        put "/v1/tasks/#{task.id}", params: update_invalid_params8, headers: headers
+        put "/v1/tasks/#{task.id}", params: update_invalid_params8, headers: csrf_token_auth_headers
         expect(response).to have_http_status(403)
         expect(Task.last.title).not_to eq('test_task_update')
         response_body = JSON.parse(response.body)
@@ -396,7 +416,7 @@ RSpec.describe V1::TasksController, type: :request do
   describe 'DELETE #destroy (not logged in)' do
     let!(:task) { FactoryBot.create(:task, user: user) }
     it 'returns 401' do
-      delete "/v1/tasks/#{task.id}"
+      delete "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -407,7 +427,7 @@ RSpec.describe V1::TasksController, type: :request do
     context 'delete the requested task when tasks exist' do
       let!(:delete_valid_params1) { { task: FactoryBot.attributes_for(:task), current_user_id: user.id } }
       it 'returns 204' do
-        delete "/v1/tasks/#{task.id}", params: delete_valid_params1, headers: headers
+        delete "/v1/tasks/#{task.id}", params: delete_valid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Task.count).to eq(0)
         expect(response.body).to eq('')
@@ -418,10 +438,10 @@ RSpec.describe V1::TasksController, type: :request do
       let!(:delete_valid_params2) { { task: FactoryBot.attributes_for(:task), current_user_id: user.id } }
       it 'returns 404' do
         Task.destroy_all
-        delete "/v1/tasks/#{task.id}", params: delete_valid_params2, headers: headers
+        delete "/v1/tasks/#{task.id}", params: delete_valid_params2, headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         response_body = JSON.parse(response.body)
-        expect(response_body['errors']).to include("Couldn't find Task with 'id'=#{task.id}")
+        expect(response_body['errors']).to include('Task not found')
       end
     end
 
@@ -431,7 +451,7 @@ RSpec.describe V1::TasksController, type: :request do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_delete'), current_user_id: user2.id }
       end
       it 'returns 403' do
-        delete "/v1/tasks/#{task.id}", params: delete_invalid_params2, headers: headers
+        delete "/v1/tasks/#{task.id}", params: delete_invalid_params2, headers: csrf_token_auth_headers
         expect(response).to have_http_status(403)
         expect(Task.last.title).not_to eq('test_task_delete')
         response_body = JSON.parse(response.body)
