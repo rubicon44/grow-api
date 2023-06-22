@@ -56,12 +56,16 @@ jobs:
 
       - name: Delete old Docker images
         run: |
-          OLD_IMAGES=$(aws ecr list-images --repository-name $ECR_REPOSITORY_NAME --query 'imageIds[?imageTag==``].imageDigest' --output text)
+          LATEST_IMAGE=$(aws ecr describe-images --repository-name $ECR_REPOSITORY_NAME --query 'reverse(sort_by(imageDetails,&imagePushedAt))[0].imageDigest' --output text)
+
+          OLD_IMAGES=$(aws ecr list-images --repository-name $ECR_REPOSITORY_NAME --query 'imageIds[?imageTag!=`latest`].imageDigest' --output text)
 
           if [ -n "$OLD_IMAGES" ]; then
             IFS=$'\n' read -rd '' -a IMAGES_ARRAY <<<"$OLD_IMAGES"
             for IMAGE in "${IMAGES_ARRAY[@]}"; do
-              aws ecr batch-delete-image --repository-name $ECR_REPOSITORY_NAME --image-ids imageDigest=$IMAGE
+              if [ "$IMAGE" != "$LATEST_IMAGE" ]; then
+                aws ecr batch-delete-image --repository-name $ECR_REPOSITORY_NAME --image-ids imageDigest=$IMAGE
+              fi
             done
           else
             echo "No old Docker images to delete."
