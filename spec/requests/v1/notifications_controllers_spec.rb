@@ -5,12 +5,30 @@ require 'rails_helper'
 RSpec.describe V1::NotificationsController, type: :request do
   let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
   let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
-  let!(:headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
-  let!(:headers2) { { 'Authorization' => JsonWebToken.encode(user_email: user2.email) } }
+
+  let!(:auth_headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
+  let(:csrf_token1) do
+    get '/v1/csrf_token'
+    JSON.parse(response.body)['csrf_token']['value']
+  end
+  let(:csrf_token_headers1) { { 'X-CSRF-Token' => csrf_token1 } }
+  let(:csrf_token_auth_headers1) do
+    auth_headers1.merge('X-CSRF-Token' => csrf_token1)
+  end
+
+  let!(:auth_headers2) { { 'Authorization' => JsonWebToken.encode(user_email: user2.email) } }
+  let(:csrf_token2) do
+    get '/v1/csrf_token'
+    JSON.parse(response.body)['csrf_token']['value']
+  end
+  let(:csrf_token_headers2) { { 'X-CSRF-Token' => csrf_token2 } }
+  let(:csrf_token_auth_headers2) do
+    auth_headers2.merge('X-CSRF-Token' => csrf_token2)
+  end
 
   describe 'GET #index (not logged in)' do
     it 'returns 401' do
-      get '/v1/notifications', params: { user_id: user2.id }
+      get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_headers2
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -22,7 +40,7 @@ RSpec.describe V1::NotificationsController, type: :request do
       let!(:like_notification) { FactoryBot.create(:notification, visitor: user1, visited: user2, action: 'like') }
 
       it 'returns the correct response' do
-        get '/v1/notifications', params: { user_id: user2.id }, headers: headers1
+        get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_auth_headers2
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)
@@ -51,7 +69,7 @@ RSpec.describe V1::NotificationsController, type: :request do
     context 'when excluding notifications(like) sent by the user' do
       let!(:like_notification) { FactoryBot.create(:notification, visitor: user1, visited: user2, action: 'like') }
       it 'excludes self-sent notifications' do
-        get '/v1/notifications', params: { user_id: user1.id }, headers: headers1
+        get '/v1/notifications', params: { user_id: user1.id }, headers: csrf_token_auth_headers1
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)
@@ -67,15 +85,17 @@ RSpec.describe V1::NotificationsController, type: :request do
     context 'when excluding notifications(like) sent by the user' do
       let!(:task) { FactoryBot.create(:task, title: 'task_by_task_created_user', user: user2) }
       it 'excludes sent notifications' do
-        post "/v1/tasks/#{task.id}/likes", params: { current_user_id: user1.id, task_id: task.id }, headers: headers1
+        post "/v1/tasks/#{task.id}/likes", params: { current_user_id: user1.id, task_id: task.id },
+                                           headers: csrf_token_auth_headers1
         expect(response).to have_http_status(204)
 
-        post "/v1/tasks/#{task.id}/likes", params: { current_user_id: user1.id, task_id: task.id }, headers: headers1
+        post "/v1/tasks/#{task.id}/likes", params: { current_user_id: user1.id, task_id: task.id },
+                                           headers: csrf_token_auth_headers1
         expect(response).to have_http_status(409)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Conflict: User has already liked this task')
+        expect(json_response['errors']).to eq('User has already liked this task')
 
-        get '/v1/notifications', params: { user_id: user2.id }, headers: headers1
+        get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_auth_headers2
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)
@@ -88,14 +108,14 @@ RSpec.describe V1::NotificationsController, type: :request do
     context 'when excluding notifications(follow) sent by the user' do
       it 'excludes self-sent notifications' do
         params = { following_id: user1.id, follower_id: user2.id }
-        post "/v1/users/#{user1.id}/relationships", params: params, headers: headers1
+        post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_auth_headers1
         expect(response).to have_http_status(204)
 
         params = { following_id: user1.id, follower_id: user2.id }
-        post "/v1/users/#{user1.id}/relationships", params: params, headers: headers1
+        post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_auth_headers1
         expect(response).to have_http_status(409)
 
-        get '/v1/notifications', params: { user_id: user2.id }, headers: headers2
+        get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_auth_headers2
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)

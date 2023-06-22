@@ -9,13 +9,22 @@ RSpec.describe V1::LikesController, type: :request do
   let!(:task_created_user) { FactoryBot.create(:user, username: 'created_user') }
   let!(:current_user) { FactoryBot.create(:user, username: 'current_user') }
   let!(:other_user) { FactoryBot.create(:user, username: 'other_user') }
-  let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: current_user.email) } }
   let!(:task) { FactoryBot.create(:task, title: 'task_by_task_created_user', user: task_created_user) }
+
+  let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: current_user.email) } }
+  let(:csrf_token) do
+    get '/v1/csrf_token'
+    JSON.parse(response.body)['csrf_token']['value']
+  end
+  let(:csrf_token_headers) { { 'X-CSRF-Token' => csrf_token } }
+  let(:csrf_token_auth_headers) do
+    auth_headers.merge('X-CSRF-Token' => csrf_token)
+  end
 
   describe 'GET #index (not logged in)' do
     let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
     it 'returns 401' do
-      get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }
+      get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -25,7 +34,7 @@ RSpec.describe V1::LikesController, type: :request do
     let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
     context 'when there are likes' do
       it 'returns a list of likes and like count' do
-        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: headers
+        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)
@@ -39,7 +48,7 @@ RSpec.describe V1::LikesController, type: :request do
         like.destroy
       end
       it 'returns an empty list of likes and like count when there are no likes' do
-        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: headers
+        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
 
         json_response = JSON.parse(response.body)
@@ -54,17 +63,18 @@ RSpec.describe V1::LikesController, type: :request do
         Task.destroy_all
       end
       it 'returns 404 if tasks do not exist' do
-        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: headers
+        get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Task not found')
+        expect(json_response['errors']).to eq('Task not found')
       end
     end
   end
 
   describe 'POST #create (not logged in)' do
     it 'returns 401' do
-      post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id }
+      post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id },
+                                         headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -74,7 +84,7 @@ RSpec.describe V1::LikesController, type: :request do
     context 'with valid params' do
       it 'creates a like and returns 204 status' do
         post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id },
-                                           headers: headers
+                                           headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
 
         expect(Like.count).to eq(1)
@@ -85,7 +95,8 @@ RSpec.describe V1::LikesController, type: :request do
 
     context 'with invalid params' do
       it 'returns 422 if current_user_id is missing' do
-        post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: nil }, headers: headers
+        post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: nil },
+                                           headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
       end
     end
@@ -94,10 +105,10 @@ RSpec.describe V1::LikesController, type: :request do
       let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
       it 'returns 409 if the user has already liked the task' do
         post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id },
-                                           headers: headers
+                                           headers: csrf_token_auth_headers
         expect(response).to have_http_status(409)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Conflict: User has already liked this task')
+        expect(json_response['errors']).to eq('User has already liked this task')
       end
     end
 
@@ -107,10 +118,10 @@ RSpec.describe V1::LikesController, type: :request do
       end
       it 'returns 404 if tasks do not exist' do
         post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id },
-                                           headers: headers
+                                           headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Task not found')
+        expect(json_response['errors']).to eq('Task not found')
       end
     end
   end
@@ -120,7 +131,8 @@ RSpec.describe V1::LikesController, type: :request do
     let(:like_task_id) { like.task_id }
     let(:like_user_id) { like.user_id }
     it 'returns 401' do
-      delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id }
+      delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id },
+                                                      headers: csrf_token_headers
       expect(response).to have_http_status(401)
       expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
@@ -131,7 +143,7 @@ RSpec.describe V1::LikesController, type: :request do
       let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
       it 'removes the like and returns 204 status' do
         delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id },
-                                                        headers: headers
+                                                        headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
         expect(Like.count).to eq(0)
       end
@@ -151,11 +163,11 @@ RSpec.describe V1::LikesController, type: :request do
         Like.destroy_all
       end
       it 'returns 404 if the likes does not exist' do
-        delete "/v1/tasks/#{task.id}/likes/999", params: { task_id: task.id, current_user_id: current_user.id },
-                                                 headers: headers
+        delete "/v1/tasks/#{task.id}/likes/0", params: { task_id: task.id, current_user_id: current_user.id },
+                                               headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Likes not found')
+        expect(json_response['errors']).to eq('Likes not found')
       end
     end
 
@@ -166,10 +178,10 @@ RSpec.describe V1::LikesController, type: :request do
       end
       it 'returns 404 if tasks do not exist' do
         delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id },
-                                                        headers: headers
+                                                        headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Task not found')
+        expect(json_response['errors']).to eq('Task not found')
       end
     end
 
@@ -177,10 +189,10 @@ RSpec.describe V1::LikesController, type: :request do
       let!(:other_like) { FactoryBot.create(:like, user_id: other_user.id, task_id: task.id) }
       it 'returns 403 if trying to delete other user\'s likes' do
         delete "/v1/tasks/#{task.id}/likes/#{other_like.id}",
-               params: { task_id: task.id, current_user_id: current_user.id }, headers: headers
+               params: { task_id: task.id, current_user_id: current_user.id }, headers: csrf_token_auth_headers
         expect(response).to have_http_status(403)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Cannot delete other user\'s likes')
+        expect(json_response['errors']).to eq('Cannot delete other user\'s likes')
       end
     end
   end

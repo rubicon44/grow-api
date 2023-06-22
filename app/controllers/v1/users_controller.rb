@@ -51,7 +51,7 @@ module V1
 
     def update
       user = find_user
-      return render_not_found('User') if user.nil?
+      return render_not_found('User') unless user
 
       current_user_id = params[:current_user_id].to_i
       method = request.method.downcase

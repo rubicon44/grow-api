@@ -31,6 +31,8 @@ module V1
 
     def update
       task = find_task
+      return render_not_found('Task') unless task
+
       task.update(task_params) ? render_no_content : render_unprocessable_entity(task)
     end
 
@@ -51,6 +53,8 @@ module V1
 
     def require_task_owner
       task = find_task
+      return render_not_found('Task') unless task
+
       current_user_id = params[:current_user_id].to_i
 
       error_message = if request.method == 'PUT'
@@ -61,7 +65,7 @@ module V1
 
       return unless error_message && task.user_id != current_user_id
 
-      render_forbidden("You are not authorized to #{message} this task")
+      render_forbidden("You are not authorized to #{error_message} this task")
     end
 
     def fetch_following_user_tasks
@@ -73,6 +77,8 @@ module V1
     end
 
     def paginate_tasks(tasks, page, page_size)
+      return [] if tasks.blank?
+
       tasks.limit(page_size).offset((page - 1) * page_size)
     end
 
