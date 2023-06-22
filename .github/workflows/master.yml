@@ -54,7 +54,7 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
-     - name: Delete old Docker images
+      - name: Delete old Docker images
         run: |
           OLD_IMAGES=$(aws ecr list-images --repository-name $ECR_REPOSITORY_NAME --query 'imageIds[?imageTag!=`latest` && imageTag!=null].imageDigest' --output text)
 
