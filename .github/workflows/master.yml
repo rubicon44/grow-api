@@ -54,6 +54,16 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
           docker push $IMAGE_NAME
 
+      - name: Delete old Docker images
+        run: |
+          OLD_IMAGES=$(aws ecr list-images --repository-name $ECR_REPOSITORY_NAME --filter "tagStatus=UNTAGGED" --query 'imageIds[*]' --output text)
+
+          if [ -n "$OLD_IMAGES" ]; then
+            aws ecr batch-delete-image --repository-name $ECR_REPOSITORY_NAME --image-ids $OLD_IMAGES
+          else
+            echo "No old Docker images to delete."
+          fi
+
       - name: Deploy to ECS
         run: |
           aws ecs update-service --cluster ${{ env.ECS_CLUSTER_NAME }} --service ${{ env.ECS_SERVICE_NAME }} --force-new-deployment
