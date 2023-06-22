@@ -56,15 +56,12 @@ jobs:
 
       - name: Delete old Docker images
         run: |
-          # 最新のイメージを取得する
           LATEST_IMAGE=$(aws ecr describe-images --repository-name $ECR_REPOSITORY_NAME --query 'reverse(sort_by(imageDetails,&imagePushedAt))[0].imageDigest' --output text)
 
           if [ -n "$LATEST_IMAGE" ]; then
-            # タグがないイメージを特定する
             OLD_IMAGES=$(aws ecr list-images --repository-name $ECR_REPOSITORY_NAME --query 'imageIds[?imageTag==`null` && imageDigest!=`'$LATEST_IMAGE'`].imageDigest' --output text)
 
             if [ -n "$OLD_IMAGES" ]; then
-              # 不要なイメージがあれば削除する
               IFS=$'\n' read -rd '' -a IMAGES_ARRAY <<<"$OLD_IMAGES"
               for IMAGE in "${IMAGES_ARRAY[@]}"; do
                 aws ecr batch-delete-image --repository-name $ECR_REPOSITORY_NAME --image-ids imageDigest=$IMAGE
