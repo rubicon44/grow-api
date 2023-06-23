@@ -2,19 +2,13 @@
 
 require 'rails_helper'
 
-# TODO1: data_typeが「default」「tasks」「likedTasks」に分けてテストする
-# todo2: ページネーションテストも追加する
-
-# TODO: 認証エラーの際は、401を返す(following時になっていない。)
-# todo: contextとitのテストケース文言を揃える
-
 RSpec.describe V1::UsersController, type: :request do
-  # TODO: ユーザーを最初にまとめるか、それぞれのテストケースで作成するか検討する。
   let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
   let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
   let!(:task1_by_user1) { FactoryBot.create(:task, title: 'task1_by_user1', user: user1) }
   let!(:task2_by_user1) { FactoryBot.create(:task, title: 'task2_by_user1', user: user1) }
-  let!(:like_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task1_by_user1.id) }
+  let!(:like1_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task1_by_user1.id) }
+  let!(:like2_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task2_by_user1.id) }
 
   let!(:auth_headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let(:csrf_token1) do
@@ -51,10 +45,91 @@ RSpec.describe V1::UsersController, type: :request do
   end
 
   describe 'GET #show (logged in)' do
+    let!(:task3_by_user1) { FactoryBot.create(:task, title: 'task3_by_user1', user: user1) }
+    let!(:task4_by_user1) { FactoryBot.create(:task, title: 'task4_by_user1', user: user1) }
+    let!(:like3_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task3_by_user1.id) }
+    let!(:like4_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task4_by_user1.id) }
+
     context 'when user1 is the logged-in user' do
-      it 'returns the user details' do
+      it 'returns the user details with page: 1, page_size: 1 (data_type: default)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'default', page: 1, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(1)
+        expect(tasks[0]['title']).to eq('task4_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(1)
+        expect(liked_tasks[0]['title']).to eq('task4_by_user1')
+      end
+
+      it 'returns the user details with page: 2, page_size: 1 (data_type: default)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'default', page: 2, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(1)
+        expect(tasks[0]['title']).to eq('task3_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(1)
+        expect(liked_tasks[0]['title']).to eq('task3_by_user1')
+      end
+
+      it 'returns empty tasks and liked_tasks when exceeding the number of registered tasks' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'default', page: 5, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks).to eq([])
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks).to eq([])
+      end
+
+      it 'returns the user details with page: 1, page_size: 2 (data_type: default)' do
         get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
                                      params: { data_type: 'default', page: 1, page_size: 2 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(2)
+        expect(tasks[0]['title']).to eq('task4_by_user1')
+        expect(tasks[1]['title']).to eq('task3_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(2)
+        expect(liked_tasks[0]['title']).to eq('task4_by_user1')
+        expect(liked_tasks[1]['title']).to eq('task3_by_user1')
+      end
+
+      it 'returns the user details with page: 2, page_size: 2 (data_type: default)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'default', page: 2, page_size: 2 }
         expect(response).to have_http_status(200)
 
         user_data = JSON.parse(response.body)
@@ -68,8 +143,157 @@ RSpec.describe V1::UsersController, type: :request do
         expect(tasks[1]['title']).to eq('task1_by_user1')
 
         liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(2)
+        expect(liked_tasks[0]['title']).to eq('task2_by_user1')
+        expect(liked_tasks[1]['title']).to eq('task1_by_user1')
+      end
+
+      it 'returns the user details with page: 1, page_size: 1 (data_type: tasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'tasks', page: 1, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(1)
+        expect(tasks[0]['title']).to eq('task4_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks).to be_nil
+      end
+
+      it 'returns the user details with page: 2, page_size: 1 (data_type: tasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'tasks', page: 2, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(1)
+        expect(tasks[0]['title']).to eq('task3_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks).to be_nil
+      end
+
+      it 'returns the user details with page: 1, page_size: 2 (data_type: tasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'tasks', page: 1, page_size: 2 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(2)
+        expect(tasks[0]['title']).to eq('task4_by_user1')
+        expect(tasks[1]['title']).to eq('task3_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks).to be_nil
+      end
+
+      it 'returns the user details with page: 2, page_size: 2 (data_type: tasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'tasks', page: 2, page_size: 2 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks.length).to eq(2)
+        expect(tasks[0]['title']).to eq('task2_by_user1')
+        expect(tasks[1]['title']).to eq('task1_by_user1')
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks).to be_nil
+      end
+
+      it 'returns the user details with page: 1, page_size: 1 (data_type: likedTasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'likedTasks', page: 1, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks).to be_nil
+
+        liked_tasks = user_data['liked_tasks']
         expect(liked_tasks.length).to eq(1)
-        expect(liked_tasks[0]['title']).to eq('task1_by_user1')
+        expect(liked_tasks[0]['title']).to eq('task4_by_user1')
+      end
+
+      it 'returns the user details with page: 2, page_size: 1 (data_type: likedTasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'likedTasks', page: 2, page_size: 1 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks).to be_nil
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(1)
+        expect(liked_tasks[0]['title']).to eq('task3_by_user1')
+      end
+
+      it 'returns the user details with page: 1, page_size: 2 (data_type: likedTasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'likedTasks', page: 1, page_size: 2 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks).to be_nil
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(2)
+        expect(liked_tasks[0]['title']).to eq('task4_by_user1')
+        expect(liked_tasks[1]['title']).to eq('task3_by_user1')
+      end
+
+      it 'returns the user details with page: 2, page_size: 2 (data_type: likedTasks)' do
+        get "/v1/#{user1.username}", headers: csrf_token_auth_headers1,
+                                     params: { data_type: 'likedTasks', page: 2, page_size: 2 }
+        expect(response).to have_http_status(200)
+
+        user_data = JSON.parse(response.body)
+        expect(user_data['nickname']).to eq('user1')
+        expect(user_data['username']).to eq('user1')
+        expect(user_data['bio']).to eq('user1')
+
+        tasks = user_data['tasks']
+        expect(tasks).to be_nil
+
+        liked_tasks = user_data['liked_tasks']
+        expect(liked_tasks.length).to eq(2)
+        expect(liked_tasks[0]['title']).to eq('task2_by_user1')
+        expect(liked_tasks[1]['title']).to eq('task1_by_user1')
       end
     end
 
@@ -143,7 +367,6 @@ RSpec.describe V1::UsersController, type: :request do
 
     context 'when user has no followings' do
       let!(:user) { FactoryBot.create(:user, username: 'user') }
-      # let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       let(:csrf_token) do
         get '/v1/csrf_token'
@@ -213,7 +436,6 @@ RSpec.describe V1::UsersController, type: :request do
 
     context 'when user has no followers' do
       let!(:user) { FactoryBot.create(:user, username: 'user') }
-      # let!(:headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
       let(:csrf_token) do
         get '/v1/csrf_token'
@@ -324,7 +546,6 @@ RSpec.describe V1::UsersController, type: :request do
 
   describe 'PUT #update (not logged in)' do
     let!(:user3) { FactoryBot.create(:user) }
-    # let!(:headers3) { { 'Authorization' => JsonWebToken.encode(user_email: user3.email) } }
     let!(:auth_headers3) { { 'Authorization' => JsonWebToken.encode(user_email: user3.email) } }
     let(:csrf_token3) do
       get '/v1/csrf_token'
@@ -351,7 +572,6 @@ RSpec.describe V1::UsersController, type: :request do
   describe 'PUT #update (logged in)' do
     context 'when the user is the owner' do
       let!(:user4) { FactoryBot.create(:user) }
-      # let!(:headers4) { { 'Authorization' => JsonWebToken.encode(user_email: user4.email) } }
       let!(:auth_headers4) { { 'Authorization' => JsonWebToken.encode(user_email: user4.email) } }
       let(:csrf_token4) do
         get '/v1/csrf_token'
@@ -385,7 +605,6 @@ RSpec.describe V1::UsersController, type: :request do
     context 'when the user is not the owner' do
       let!(:user5) { FactoryBot.create(:user, nickname: 'user5', username: 'user5', bio: 'user5') }
       let!(:user6) { FactoryBot.create(:user) }
-      # let!(:headers6) { { 'Authorization' => JsonWebToken.encode(user_email: user6.email) } }
       let!(:auth_headers6) { { 'Authorization' => JsonWebToken.encode(user_email: user6.email) } }
       let(:csrf_token6) do
         get '/v1/csrf_token'

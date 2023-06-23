@@ -2,20 +2,22 @@
 
 require 'rails_helper'
 
-# todo2: following_tasksも追加する
-# todo3: ページネーションテストも追加する
 # todo4: エラーレスポンスのフォーマットを統一する
 ## 1: expect(response.body).to eq('{"errors":"Authorization token is missing"}')
 ## 2: expect(response_body['errors']).to include("Title exceeds maximum length")
+
 # todo5: エラーレスポンスの修正(例: 'は255文字以内で入力してください'を通す)
+
 # todo6: 「入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)」を処理
-# todo7: describe, context, itのテストケースの分類を揃える
 # todo8: エラー文言の修正(エラー文言の形式を揃える。英語と日本語のどちらを使用すべきか。完全でない文言はそのままで良いのか。)
+
 # todo9: before_validationや、Modelのvalidation等を忘れずに。
 
 RSpec.describe V1::TasksController, type: :request do
-  let!(:user) { FactoryBot.create(:user) }
-  let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
+  let!(:user1) { FactoryBot.create(:user) }
+  let!(:user2) { FactoryBot.create(:user) }
+
+  let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let(:csrf_token) do
     get '/v1/csrf_token'
     JSON.parse(response.body)['csrf_token']['value']
@@ -33,16 +35,22 @@ RSpec.describe V1::TasksController, type: :request do
     end
   end
 
+  # infinite scrollを修正
   describe 'GET #index (logged in)' do
-    let!(:task1) { FactoryBot.create(:task, title: 'test_task1') }
-    let!(:task2) { FactoryBot.create(:task, title: 'test_task2') }
+    context 'when tasks & following_user_tasks exist' do
+      let!(:task1) { FactoryBot.create(:task, title: 'test_task1', user: user1) }
+      let!(:task2) { FactoryBot.create(:task, title: 'test_task2', user: user2) }
 
-    context 'when tasks exist' do
       it 'returns a list of tasks & 200' do
-        get '/v1/tasks', headers: csrf_token_auth_headers, params: { currentUserId: user.id, page: 1, page_size: 2 }
+        params = { following_id: user1.id, follower_id: user2.id }
+        post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_auth_headers
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 1, page_size: 2 }
         expect(response).to have_http_status(200)
-        expect(response.body).to include(task1.title)
-        expect(response.body).to include(task2.title)
+        json_response = JSON.parse(response.body)
+        expect(json_response['tasks'][1]['title']).to include(task1.title)
+        expect(json_response['tasks'][0]['title']).to include(task2.title)
+        expect(json_response['following_user_tasks'][0]['title']).to include(task2.title)
       end
     end
 
@@ -52,6 +60,89 @@ RSpec.describe V1::TasksController, type: :request do
         get '/v1/tasks', headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
         expect(response.body).to eq('{"tasks":[],"following_user_tasks":[]}')
+      end
+    end
+
+    # page_sizeは固定
+    context 'infinite scroll of tasks with page_size: 1' do
+      let!(:task1_by_user1) { FactoryBot.create(:task, title: 'test_task1_1', user: user1) }
+      let!(:task2_by_user1) { FactoryBot.create(:task, title: 'test_task1_2', user: user1) }
+
+      it 'returns a list of tasks & 200' do
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 1, page_size: 1 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['tasks'][0]['title']).to include(task2_by_user1.title)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 2, page_size: 1 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['tasks'][0]['title']).to include(task1_by_user1.title)
+      end
+    end
+
+    context 'infinite scroll of following_user_tasks with page_size: 1' do
+      let!(:task1_by_user2) { FactoryBot.create(:task, title: 'test_task2_1', user: user2) }
+      let!(:task2_by_user2) { FactoryBot.create(:task, title: 'test_task2_2', user: user2) }
+
+      it 'returns a list of tasks & 200' do
+        params = { following_id: user1.id, follower_id: user2.id }
+        post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_auth_headers
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 1, page_size: 1 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['following_user_tasks'][0]['title']).to include(task2_by_user2.title)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 2, page_size: 1 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['following_user_tasks'][0]['title']).to include(task1_by_user2.title)
+      end
+    end
+
+    context 'infinite scroll of tasks with page_size: 2' do
+      let!(:task1_by_user1) { FactoryBot.create(:task, title: 'test_task1_1', user: user1) }
+      let!(:task2_by_user1) { FactoryBot.create(:task, title: 'test_task1_2', user: user1) }
+      let!(:task3_by_user1) { FactoryBot.create(:task, title: 'test_task1_3', user: user1) }
+      let!(:task4_by_user1) { FactoryBot.create(:task, title: 'test_task1_4', user: user1) }
+
+      it 'returns a list of tasks & 200' do
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 1, page_size: 2 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['tasks'][1]['title']).to include(task3_by_user1.title)
+        expect(json_response['tasks'][0]['title']).to include(task4_by_user1.title)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 2, page_size: 2 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['tasks'][1]['title']).to include(task1_by_user1.title)
+        expect(json_response['tasks'][0]['title']).to include(task2_by_user1.title)
+      end
+    end
+
+    context 'infinite scroll of following_user_tasks with page_size: 2' do
+      let!(:task1_by_user2) { FactoryBot.create(:task, title: 'test_task2_1', user: user2) }
+      let!(:task2_by_user2) { FactoryBot.create(:task, title: 'test_task2_2', user: user2) }
+      let!(:task3_by_user2) { FactoryBot.create(:task, title: 'test_task2_3', user: user2) }
+      let!(:task4_by_user2) { FactoryBot.create(:task, title: 'test_task2_4', user: user2) }
+
+      it 'returns a list of tasks & 200' do
+        params = { following_id: user1.id, follower_id: user2.id }
+        post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_auth_headers
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 1, page_size: 2 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['following_user_tasks'][1]['title']).to include(task3_by_user2.title)
+        expect(json_response['following_user_tasks'][0]['title']).to include(task4_by_user2.title)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers, params: { current_user_id: user1.id, page: 2, page_size: 2 }
+        expect(response).to have_http_status(200)
+        json_response = JSON.parse(response.body)
+        expect(json_response['following_user_tasks'][1]['title']).to include(task1_by_user2.title)
+        expect(json_response['following_user_tasks'][0]['title']).to include(task2_by_user2.title)
       end
     end
   end
@@ -97,7 +188,7 @@ RSpec.describe V1::TasksController, type: :request do
     context 'creates a new task with valid params' do
       let!(:valid_params1) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create1', content: 'test_task_create1'),
-          user_id: user.id }
+          user_id: user1.id }
       end
 
       it 'returns 204' do
@@ -110,7 +201,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
 
       let!(:valid_params2) do
-        { task: FactoryBot.attributes_for(:task, title: 'test_task_create2', content: ''), user_id: user.id }
+        { task: FactoryBot.attributes_for(:task, title: 'test_task_create2', content: ''), user_id: user1.id }
       end
       it 'when content is empty & returns 204' do
         post '/v1/tasks', params: valid_params2, headers: csrf_token_auth_headers
@@ -123,7 +214,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:valid_params3) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create3', start_date: '', end_date: ''),
-          user_id: user.id }
+          user_id: user1.id }
       end
       it 'when both start_date and end_date are blank & returns 204' do
         post '/v1/tasks', params: valid_params3, headers: csrf_token_auth_headers
@@ -136,7 +227,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:valid_params4) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create4', start_date: '', end_date: '2023-05-10'),
-          user_id: user.id }
+          user_id: user1.id }
       end
       it 'when start_date is blank and returns 204' do
         post '/v1/tasks', params: valid_params4, headers: csrf_token_auth_headers
@@ -148,7 +239,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:valid_params5) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_create5', start_date: '2023-05-10', end_date: ''),
-          user_id: user.id }
+          user_id: user1.id }
       end
       it 'when end_date is blank and returns 204' do
         post '/v1/tasks', params: valid_params5, headers: csrf_token_auth_headers
@@ -232,7 +323,7 @@ RSpec.describe V1::TasksController, type: :request do
   end
 
   describe 'PUT #update (not logged in)' do
-    let!(:task) { FactoryBot.create(:task, user: user) }
+    let!(:task) { FactoryBot.create(:task, user: user1) }
     it 'returns 401' do
       put "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
@@ -241,12 +332,12 @@ RSpec.describe V1::TasksController, type: :request do
   end
 
   describe 'PUT #update (logged in)' do
-    let!(:task) { FactoryBot.create(:task, user: user) }
+    let!(:task) { FactoryBot.create(:task, user: user1) }
 
     context 'updates the requested task with valid params' do
       let!(:update_valid_params1) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update1', content: 'test_task_update1'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
 
       it 'returns 204' do
@@ -259,7 +350,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
 
       let!(:update_valid_params2) do
-        { task: FactoryBot.attributes_for(:task, title: 'test_task_update2', content: ''), current_user_id: user.id }
+        { task: FactoryBot.attributes_for(:task, title: 'test_task_update2', content: ''), current_user_id: user1.id }
       end
       it 'when content is empty & returns 204' do
         put "/v1/tasks/#{task.id}", params: update_valid_params2, headers: csrf_token_auth_headers
@@ -272,7 +363,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_valid_params3) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update3', start_date: '', end_date: ''),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'when both start_date and end_date are blank & returns 204' do
         put "/v1/tasks/#{task.id}", params: update_valid_params3, headers: csrf_token_auth_headers
@@ -285,7 +376,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_valid_params4) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update4', start_date: '', end_date: '2023-05-10'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'when start_date is blank and returns 204' do
         put "/v1/tasks/#{task.id}", params: update_valid_params4, headers: csrf_token_auth_headers
@@ -297,7 +388,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_valid_params5) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update5', start_date: '2023-05-10', end_date: ''),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'when end_date is blank and returns 204' do
         put "/v1/tasks/#{task.id}", params: update_valid_params5, headers: csrf_token_auth_headers
@@ -314,7 +405,7 @@ RSpec.describe V1::TasksController, type: :request do
       ## 入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)
 
       let!(:update_invalid_params1) do
-        { task: FactoryBot.attributes_for(:task, title: 'a' * 256), current_user_id: user.id }
+        { task: FactoryBot.attributes_for(:task, title: 'a' * 256), current_user_id: user1.id }
       end
       it 'when title is too long & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params1, headers: csrf_token_auth_headers
@@ -325,7 +416,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       # content
       let!(:update_invalid_params2) do
-        { task: FactoryBot.attributes_for(:task, content: 'a' * 5001), current_user_id: user.id }
+        { task: FactoryBot.attributes_for(:task, content: 'a' * 5001), current_user_id: user1.id }
       end
       it 'when content exceeds the maximum length & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params2, headers: csrf_token_auth_headers
@@ -337,7 +428,7 @@ RSpec.describe V1::TasksController, type: :request do
       # status
       ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
 
-      let!(:update_invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4), current_user_id: user.id } }
+      let!(:update_invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4), current_user_id: user1.id } }
       it 'when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params3, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
@@ -350,7 +441,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_invalid_params4) do
         { task: FactoryBot.attributes_for(:task, start_date: '20230101', end_date: '20231231'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'with invalid date format & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params4, headers: csrf_token_auth_headers
@@ -362,7 +453,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_invalid_params5) do
         { task: FactoryBot.attributes_for(:task, start_date: '2023-01-011', end_date: '2023-12-311'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'with start date and end date exceeding the character limit & returns 422 ' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params5, headers: csrf_token_auth_headers
@@ -374,7 +465,7 @@ RSpec.describe V1::TasksController, type: :request do
 
       let!(:update_invalid_params6) do
         { task: FactoryBot.attributes_for(:task, start_date: '2023-05-05', end_date: '2023-05-01'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'when end_date is before start_date & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params6, headers: csrf_token_auth_headers
@@ -387,7 +478,7 @@ RSpec.describe V1::TasksController, type: :request do
     context 'update non-existent tasks' do
       let!(:update_invalid_params7) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update', content: 'test_task_update'),
-          current_user_id: user.id }
+          current_user_id: user1.id }
       end
       it 'returns 404' do
         put '/v1/tasks/0', params: update_invalid_params7, headers: csrf_token_auth_headers
@@ -398,7 +489,6 @@ RSpec.describe V1::TasksController, type: :request do
     end
 
     context 'when an unauthorized user update a task' do
-      let!(:user2) { FactoryBot.create(:user) }
       let!(:update_invalid_params8) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_update', content: 'test_task_update'),
           current_user_id: user2.id }
@@ -414,7 +504,7 @@ RSpec.describe V1::TasksController, type: :request do
   end
 
   describe 'DELETE #destroy (not logged in)' do
-    let!(:task) { FactoryBot.create(:task, user: user) }
+    let!(:task) { FactoryBot.create(:task, user: user1) }
     it 'returns 401' do
       delete "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
@@ -423,9 +513,9 @@ RSpec.describe V1::TasksController, type: :request do
   end
 
   describe 'DELETE #destroy (logged in)' do
-    let!(:task) { FactoryBot.create(:task, user: user) }
+    let!(:task) { FactoryBot.create(:task, user: user1) }
     context 'delete the requested task when tasks exist' do
-      let!(:delete_valid_params1) { { task: FactoryBot.attributes_for(:task), current_user_id: user.id } }
+      let!(:delete_valid_params1) { { task: FactoryBot.attributes_for(:task), current_user_id: user1.id } }
       it 'returns 204' do
         delete "/v1/tasks/#{task.id}", params: delete_valid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(204)
@@ -435,7 +525,7 @@ RSpec.describe V1::TasksController, type: :request do
     end
 
     context 'do not delete the requested task when tasks is non-existent' do
-      let!(:delete_valid_params2) { { task: FactoryBot.attributes_for(:task), current_user_id: user.id } }
+      let!(:delete_valid_params2) { { task: FactoryBot.attributes_for(:task), current_user_id: user1.id } }
       it 'returns 404' do
         Task.destroy_all
         delete "/v1/tasks/#{task.id}", params: delete_valid_params2, headers: csrf_token_auth_headers
@@ -446,7 +536,6 @@ RSpec.describe V1::TasksController, type: :request do
     end
 
     context 'do not delete the requested task when an unauthorized user delete a task' do
-      let!(:user2) { FactoryBot.create(:user) }
       let!(:delete_invalid_params2) do
         { task: FactoryBot.attributes_for(:task, title: 'test_task_delete'), current_user_id: user2.id }
       end
