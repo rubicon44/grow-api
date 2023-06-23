@@ -29,7 +29,8 @@ RSpec.describe V1::SearchesController, type: :request do
           params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 1, page_size: 1 },
           headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 

@@ -2,14 +2,6 @@
 
 require 'rails_helper'
 
-# todo1: エラーレスポンスのフォーマットを統一する
-## 1: expect(response.body).to eq('{"errors":"Authorization token is missing"}')
-## 2: expect(response_body['errors']).to include("Title exceeds maximum length")
-
-# todo2: エラー文言の修正
-## 英語と日本語のどちらを使用すべきか(翻訳？)
-## 'は255文字以内で入力してください'等のエラー文言にすべきか？
-
 RSpec.describe V1::TasksController, type: :request do
   let!(:user1) { FactoryBot.create(:user) }
   let!(:user2) { FactoryBot.create(:user) }
@@ -28,7 +20,8 @@ RSpec.describe V1::TasksController, type: :request do
     it 'returns 401' do
       get '/v1/tasks', headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -55,7 +48,9 @@ RSpec.describe V1::TasksController, type: :request do
         Task.destroy_all
         get '/v1/tasks', headers: csrf_token_auth_headers
         expect(response).to have_http_status(200)
-        expect(response.body).to eq('{"tasks":[],"following_user_tasks":[]}')
+        response_body = JSON.parse(response.body)
+        expect(response_body['tasks']).to eq([])
+        expect(response_body['following_user_tasks']).to eq([])
       end
     end
 
@@ -147,7 +142,8 @@ RSpec.describe V1::TasksController, type: :request do
     it 'returns 401' do
       get "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to eq('Authorization token is missing')
     end
   end
 
@@ -166,7 +162,8 @@ RSpec.describe V1::TasksController, type: :request do
         Task.destroy_all
         get "/v1/tasks/#{task.id}", headers: csrf_token_auth_headers
         expect(response).to have_http_status(404)
-        expect(response.body).to eq('{"errors":"Task not found"}')
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to eq('Task not found')
       end
     end
   end
@@ -175,7 +172,8 @@ RSpec.describe V1::TasksController, type: :request do
     it 'returns 401' do
       post '/v1/tasks', headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to eq('Authorization token is missing')
     end
   end
 
@@ -247,16 +245,13 @@ RSpec.describe V1::TasksController, type: :request do
 
     context 'do not create a new task with invalid params' do
       # title
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-      ## 入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:invalid_params1) { { task: FactoryBot.attributes_for(:task, title: 'a' * 256) } }
       it 'when title is too long & returns 422' do
         post '/v1/tasks', params: invalid_params1, headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
         expect(response_body['errors']).to include('Title exceeds maximum length')
-        # expect(response_body['errors']).to include('は255文字以内で入力してください')
       end
 
       # content
@@ -266,12 +261,10 @@ RSpec.describe V1::TasksController, type: :request do
         expect(response).to have_http_status(422)
         response_body = JSON.parse(response.body)
         expect(response_body['errors']).to include('Content exceeds maximum length')
-        # expect(response_body['errors']).to include('は5000文字以内で入力してください')
       end
 
       # status
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4) } }
       it 'when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
         post '/v1/tasks', params: invalid_params3, headers: csrf_token_auth_headers
@@ -281,8 +274,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
 
       # start_date、end_date
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:invalid_params4) do
         { task: FactoryBot.attributes_for(:task, start_date: '20230101', end_date: '20231231') }
       end
@@ -322,7 +314,8 @@ RSpec.describe V1::TasksController, type: :request do
     it 'returns 401' do
       put "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -396,9 +389,7 @@ RSpec.describe V1::TasksController, type: :request do
 
     context 'do not update the requested task with invalid params' do
       # title
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-      ## 入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:update_invalid_params1) do
         { task: FactoryBot.attributes_for(:task, title: 'a' * 256), current_user_id: user1.id }
       end
@@ -421,8 +412,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
 
       # status
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:update_invalid_params3) { { task: FactoryBot.attributes_for(:task, status: 4), current_user_id: user1.id } }
       it 'when a status other than 0, 1, 2, 3 is specified in the input form & returns 422' do
         put "/v1/tasks/#{task.id}", params: update_invalid_params3, headers: csrf_token_auth_headers
@@ -432,8 +422,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
 
       # start_date、end_date
-      ## 入力フォームに入力されるべき値が空の場合(ModelSpecのインスタンスメソッドをテスト)
-
+      ## 入力フォームに入力されるべき値が空の場合はテストなし
       let!(:update_invalid_params4) do
         { task: FactoryBot.attributes_for(:task, start_date: '20230101', end_date: '20231231'),
           current_user_id: user1.id }
@@ -503,7 +492,8 @@ RSpec.describe V1::TasksController, type: :request do
     it 'returns 401' do
       delete "/v1/tasks/#{task.id}", headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to eq('Authorization token is missing')
     end
   end
 

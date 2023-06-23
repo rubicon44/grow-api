@@ -4,7 +4,6 @@ require 'rails_helper'
 
 # 自分自身に対するいいねができることのテストは省略
 # create, delete時にtask_idがparamsとして渡されていない場合のテストは、Railsの挙動により必要なし
-
 RSpec.describe V1::LikesController, type: :request do
   let!(:task_created_user) { FactoryBot.create(:user, username: 'created_user') }
   let!(:current_user) { FactoryBot.create(:user, username: 'current_user') }
@@ -26,7 +25,8 @@ RSpec.describe V1::LikesController, type: :request do
     it 'returns 401' do
       get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -134,7 +134,8 @@ RSpec.describe V1::LikesController, type: :request do
       delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id },
                                                       headers: csrf_token_headers
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 

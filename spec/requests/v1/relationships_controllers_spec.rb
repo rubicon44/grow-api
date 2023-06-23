@@ -21,14 +21,16 @@ RSpec.describe V1::RelationshipsController, type: :request do
       params = { following_id: user1.id, follower_id: user2.id }
       post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
       post '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -113,14 +115,16 @@ RSpec.describe V1::RelationshipsController, type: :request do
       params = { following_id: user1.id, follower_id: user2.id }
       delete "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
       delete '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 

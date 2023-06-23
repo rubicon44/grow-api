@@ -2,6 +2,7 @@
 
 require 'rails_helper'
 
+# 自分自身へのフォローはできない(別のspecでテスト済み)
 RSpec.describe V1::NotificationsController, type: :request do
   let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
   let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
@@ -30,7 +31,8 @@ RSpec.describe V1::NotificationsController, type: :request do
     it 'returns 401' do
       get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_headers2
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -126,6 +128,5 @@ RSpec.describe V1::NotificationsController, type: :request do
     end
 
     # TODO: [未実装]ページネーション機能
-    # 自分自身へのフォローはできない(別のspecでテスト済み)
   end
 end
