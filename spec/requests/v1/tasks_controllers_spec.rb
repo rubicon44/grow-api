@@ -2,16 +2,13 @@
 
 require 'rails_helper'
 
-# todo4: エラーレスポンスのフォーマットを統一する
+# todo1: エラーレスポンスのフォーマットを統一する
 ## 1: expect(response.body).to eq('{"errors":"Authorization token is missing"}')
 ## 2: expect(response_body['errors']).to include("Title exceeds maximum length")
 
-# todo5: エラーレスポンスの修正(例: 'は255文字以内で入力してください'を通す)
-
-# todo6: 「入力フォームに入力された値が文字列であるべき場合に、数値が渡された場合(ModelSpecで型キャスト前validationをテスト)」を処理
-# todo8: エラー文言の修正(エラー文言の形式を揃える。英語と日本語のどちらを使用すべきか。完全でない文言はそのままで良いのか。)
-
-# todo9: before_validationや、Modelのvalidation等を忘れずに。
+# todo2: エラー文言の修正
+## 英語と日本語のどちらを使用すべきか(翻訳？)
+## 'は255文字以内で入力してください'等のエラー文言にすべきか？
 
 RSpec.describe V1::TasksController, type: :request do
   let!(:user1) { FactoryBot.create(:user) }
@@ -35,7 +32,6 @@ RSpec.describe V1::TasksController, type: :request do
     end
   end
 
-  # infinite scrollを修正
   describe 'GET #index (logged in)' do
     context 'when tasks & following_user_tasks exist' do
       let!(:task1) { FactoryBot.create(:task, title: 'test_task1', user: user1) }
@@ -63,7 +59,6 @@ RSpec.describe V1::TasksController, type: :request do
       end
     end
 
-    # page_sizeは固定
     context 'infinite scroll of tasks with page_size: 1' do
       let!(:task1_by_user1) { FactoryBot.create(:task, title: 'test_task1_1', user: user1) }
       let!(:task2_by_user1) { FactoryBot.create(:task, title: 'test_task1_2', user: user1) }
