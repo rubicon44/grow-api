@@ -36,7 +36,7 @@ RSpec.describe V1::SearchesController, type: :request do
 
   describe 'GET #index (logged in)' do
     context 'when searching for users (model: "user")' do
-      it 'returns users with page: 1, page_size: 1 when contents is empty' do
+      it 'returns users with page: 1, page_size: 1 when contents are empty' do
         get '/v1/searches',
             params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 1, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -48,7 +48,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[0]['username']).to eq('test4')
       end
 
-      it 'returns users with page: 2, page_size: 1 when contents is empty' do
+      it 'returns users with page: 2, page_size: 1 when contents are empty' do
         get '/v1/searches',
             params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 2, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -60,7 +60,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[0]['username']).to eq('test3')
       end
 
-      it 'returns users when exceeding the number of registered users and contents is empty' do
+      it 'returns users when exceeding the number of registered users and contents are empty' do
         get '/v1/searches',
             params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 5, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -70,7 +70,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(users_data).to eq([])
       end
 
-      it 'returns users with page: 1, page_size: 2 when contents is empty' do
+      it 'returns users with page: 1, page_size: 2 when contents are empty' do
         get '/v1/searches',
             params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 1, page_size: 2 },
             headers: csrf_token_auth_headers
@@ -83,7 +83,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[1]['username']).to eq('test3')
       end
 
-      it 'returns users with page: 2, page_size: 2 when contents is empty' do
+      it 'returns users with page: 2, page_size: 2 when contents are empty' do
         get '/v1/searches',
             params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 2, page_size: 2 },
             headers: csrf_token_auth_headers
@@ -122,7 +122,7 @@ RSpec.describe V1::SearchesController, type: :request do
     end
 
     context 'when searching for tasks (model: "task")' do
-      it 'returns tasks with page: 1, page_size: 1 when contents is empty' do
+      it 'returns tasks with page: 1, page_size: 1 when contents are empty' do
         get '/v1/searches',
             params: { model: 'task', contents: '', method: 'partial', data_type: 'tasks', page: 1, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -134,7 +134,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[0]['title']).to eq('task4_by_user1')
       end
 
-      it 'returns tasks with page: 2, page_size: 1 when contents is empty' do
+      it 'returns tasks with page: 2, page_size: 1 when contents are empty' do
         get '/v1/searches',
             params: { model: 'task', contents: '', method: 'partial', data_type: 'tasks', page: 2, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -146,7 +146,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[0]['title']).to eq('task3_by_user1')
       end
 
-      it 'returns tasks when exceeding the number of registered tasks and contents is empty' do
+      it 'returns tasks when exceeding the number of registered tasks and contents are empty' do
         get '/v1/searches',
             params: { model: 'task', contents: '', method: 'partial', data_type: 'tasks', page: 5, page_size: 1 },
             headers: csrf_token_auth_headers
@@ -156,7 +156,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(tasks_data).to eq([])
       end
 
-      it 'returns tasks with page: 1, page_size: 2 when contents is empty' do
+      it 'returns tasks with page: 1, page_size: 2 when contents are empty' do
         get '/v1/searches',
             params: { model: 'task', contents: '', method: 'partial', data_type: 'tasks', page: 1, page_size: 2 },
             headers: csrf_token_auth_headers
@@ -169,7 +169,7 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response[1]['title']).to eq('task3_by_user1')
       end
 
-      it 'returns tasks with page: 2, page_size: 2 when contents is empty' do
+      it 'returns tasks with page: 2, page_size: 2 when contents are empty' do
         get '/v1/searches',
             params: { model: 'task', contents: '', method: 'partial', data_type: 'tasks', page: 2, page_size: 2 },
             headers: csrf_token_auth_headers
@@ -204,6 +204,28 @@ RSpec.describe V1::SearchesController, type: :request do
         expect(json_response).not_to be_empty
         expect(json_response.count).to eq(1)
         expect(json_response[0]['title']).to eq('task2_by_user1')
+      end
+    end
+
+    context 'when searching for users (model: not a "task" or "user")' do
+      it 'returns empty array when contents are empty' do
+        get '/v1/searches',
+            params: { model: 'aaa', contents: '', method: 'partial', data_type: 'users', page: 1, page_size: 1 },
+            headers: csrf_token_auth_headers
+        expect(response).to have_http_status(400)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to include('Invalid search model')
+      end
+
+      it 'returns empty array when contents are given' do
+        get '/v1/searches',
+            params: { model: 'aaa', contents: '2', method: 'partial', data_type: 'users', page: 1, page_size: 1 },
+            headers: csrf_token_auth_headers
+        expect(response).to have_http_status(400)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to include('Invalid search model')
       end
     end
   end

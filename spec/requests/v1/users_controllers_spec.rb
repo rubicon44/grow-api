@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe V1::UsersController, type: :request do
+  let!(:user) { FactoryBot.create(:user) }
   let!(:user1) { FactoryBot.create(:user, nickname: 'user1', username: 'user1', bio: 'user1') }
   let!(:user2) { FactoryBot.create(:user, nickname: 'user2', username: 'user2', bio: 'user2') }
   let!(:task1_by_user1) { FactoryBot.create(:task, title: 'task1_by_user1', user: user1) }
@@ -10,6 +11,7 @@ RSpec.describe V1::UsersController, type: :request do
   let!(:like1_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task1_by_user1.id) }
   let!(:like2_by_user1) { FactoryBot.create(:like, user_id: user1.id, task_id: task2_by_user1.id) }
 
+  let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user.email) } }
   let!(:auth_headers1) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let(:csrf_token1) do
     get '/v1/csrf_token'
@@ -492,6 +494,22 @@ RSpec.describe V1::UsersController, type: :request do
       expect(user.firebase_id).to eq('firebase123')
     end
 
+    it 'returns 404 with invalid CSRF token' do
+      user_params = {
+        user: {
+          nickname: 'Maria',
+          username: 'Maria123',
+          email: 'maria@example.com',
+          firebase_id: 'firebase123456'
+        }
+      }
+      post '/v1/users', params: user_params
+
+      expect(response).to have_http_status(422)
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Invalid CSRF token')
+    end
+
     context 'with invalid params' do
       it 'if nickname is missing' do
         user_params = {
@@ -503,8 +521,10 @@ RSpec.describe V1::UsersController, type: :request do
           }
         }
 
-        post '/v1/users', params: user_params
+        post '/v1/users', params: user_params, headers: csrf_token_headers1
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('A part of param not found')
       end
 
       it 'if username is missing' do
@@ -517,8 +537,10 @@ RSpec.describe V1::UsersController, type: :request do
           }
         }
 
-        post '/v1/users', params: user_params
+        post '/v1/users', params: user_params, headers: csrf_token_headers1
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('A part of param not found')
       end
 
       it 'if email is missing' do
@@ -531,8 +553,10 @@ RSpec.describe V1::UsersController, type: :request do
           }
         }
 
-        post '/v1/users', params: user_params
+        post '/v1/users', params: user_params, headers: csrf_token_headers1
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('A part of param not found')
       end
 
       it 'if firebase_id is missing' do
@@ -545,23 +569,21 @@ RSpec.describe V1::UsersController, type: :request do
           }
         }
 
-        post '/v1/users', params: user_params
+        post '/v1/users', params: user_params, headers: csrf_token_headers1
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('A part of param not found')
       end
     end
   end
 
   describe 'PUT #update (not logged in)' do
     let!(:user3) { FactoryBot.create(:user) }
-    let!(:auth_headers3) { { 'Authorization' => JsonWebToken.encode(user_email: user3.email) } }
     let(:csrf_token3) do
       get '/v1/csrf_token'
       JSON.parse(response.body)['csrf_token']['value']
     end
     let(:csrf_token_headers3) { { 'X-CSRF-Token' => csrf_token3 } }
-    let(:csrf_token_auth_headers3) do
-      auth_headers3.merge('X-CSRF-Token' => csrf_token3)
-    end
 
     it 'returns 401' do
       put "/v1/#{user3.username}", headers: csrf_token_headers3
@@ -589,6 +611,15 @@ RSpec.describe V1::UsersController, type: :request do
       let(:csrf_token_headers4) { { 'X-CSRF-Token' => csrf_token4 } }
       let(:csrf_token_auth_headers4) do
         auth_headers4.merge('X-CSRF-Token' => csrf_token4)
+      end
+
+      # 「context 'when the user is the owner' do」の外側へ移動
+      it 'returns 404 with invalid CSRF token' do
+        put "/v1/#{user4.username}", headers: auth_headers
+
+        expect(response).to have_http_status(422)
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('Invalid CSRF token')
       end
 
       it 'updates the user' do
@@ -623,12 +654,6 @@ RSpec.describe V1::UsersController, type: :request do
       let(:csrf_token_auth_headers6) do
         auth_headers6.merge('X-CSRF-Token' => csrf_token6)
       end
-
-      let(:csrf_token5) do
-        get '/v1/csrf_token'
-        JSON.parse(response.body)['csrf_token']['value']
-      end
-      let(:csrf_token_headers5) { { 'X-CSRF-Token' => csrf_token5 } }
 
       it 'returns forbidden status' do
         user_params = {

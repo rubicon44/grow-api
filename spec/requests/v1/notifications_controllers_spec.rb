@@ -78,9 +78,8 @@ RSpec.describe V1::NotificationsController, type: :request do
         expect(json_response['like_visitors'].count).to eq(0)
         expect(json_response['notifications'].count).to eq(0)
         expect(json_response['follow_visitors'].map { |user| user['username'] }).not_to include('user1')
-        expect(json_response['notifications'].map do |notification|
-                 notification['id']
-               end).not_to include(like_notification.id)
+        notification_ids = json_response['notifications'].map { |notification| notification['id'] }
+        expect(notification_ids).not_to include(like_notification.id)
       end
     end
 

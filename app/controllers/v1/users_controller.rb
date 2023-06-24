@@ -43,7 +43,7 @@ module V1
       return render_no_content if User.exists?(firebase_id: user.firebase_id)
 
       if [user.nickname, user.username, user.email, user.firebase_id].any?(&:nil?)
-        return render_unprocessable_entity(user)
+        return render_unprocessable('A part of param')
       end
 
       user.save ? render_no_content : render_unprocessable_entity(user)

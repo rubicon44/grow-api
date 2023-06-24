@@ -52,16 +52,22 @@ module V1
       render json: {}, status: :no_content
     end
 
+    # テストしない
     def render_not_created(message)
       render json: { errors: "#{message} could not be created" }, status: :unprocessable_entity
     end
 
+    # テストしない
     def render_not_destroyed(message)
       render json: { errors: "#{message} could not be destroyed" }, status: :unprocessable_entity
     end
 
     def render_not_found(message)
       render json: { errors: "#{message} not found" }, status: :not_found
+    end
+
+    def render_unprocessable(message)
+      render json: { errors: "#{message} not found" }, status: :unprocessable_entity
     end
 
     def render_unprocessable_entity(object)

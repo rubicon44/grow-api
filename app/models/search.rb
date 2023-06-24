@@ -5,10 +5,8 @@ class Search < ApplicationRecord
     case model
     when 'task'
       search_tasks(contents, method)
-    when 'user'
-      search_users(contents, method)
     else
-      []
+      search_users(contents, method)
     end
   end
 
