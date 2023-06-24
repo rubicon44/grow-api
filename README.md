@@ -101,7 +101,6 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
 
 ## アピールポイント
 ### フロントエンド
-- Cookieを使用し、基本的なCSRF対策を行っている
 - Atomic Designを適用し、基本的なコンポーネント分割を行っている
 - コンポーネントにfeatureフォルダーを適用し、Atomic Designをより使いやすくカスタマイズ
 - コンポーネントにPresentational/Containerパターンを適用し、Hooksの呼び出し位置を制限することで、可読性とメンテナンス性を向上
@@ -109,7 +108,7 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
 - API通信時には、try-catch文を用いて基本的なエラーハンドリングを行っている
 - 「eslint-config-airbnb」を適用し、厳格な静的解析を行なっている
   - 一部カスタマイズあり(アロー関数の許容など)
-
+- Cookieを使用し、基本的なCSRF対策を行っている
 - ★自前でガントチャートを作成している
 
 ### バックエンド
