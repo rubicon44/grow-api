@@ -8,10 +8,10 @@ RSpec.describe V1::SearchesController, type: :request do
   let!(:user3) { FactoryBot.create(:user, username: 'test3', nickname: 'test3') }
   let!(:user4) { FactoryBot.create(:user, username: 'test4', nickname: 'test4') }
 
-  let!(:task1_by_user1) { FactoryBot.create(:task, title: 'task1_by_user1', user: user1) }
-  let!(:task2_by_user1) { FactoryBot.create(:task, title: 'task2_by_user1', user: user1) }
-  let!(:task3_by_user1) { FactoryBot.create(:task, title: 'task3_by_user1', user: user1) }
-  let!(:task4_by_user1) { FactoryBot.create(:task, title: 'task4_by_user1', user: user1) }
+  let!(:task1_by_user1) { FactoryBot.create(:task, title: 'task1_by_user1', content: 'task1_by_user1', user: user1) }
+  let!(:task2_by_user1) { FactoryBot.create(:task, title: 'task2_by_user1', content: 'task2_by_user1', user: user1) }
+  let!(:task3_by_user1) { FactoryBot.create(:task, title: 'task3_by_user1', content: 'task3_by_user1', user: user1) }
+  let!(:task4_by_user1) { FactoryBot.create(:task, title: 'task4_by_user1', content: 'task4_by_user1', user: user1) }
 
   let!(:auth_headers) { { 'Authorization' => JsonWebToken.encode(user_email: user1.email) } }
   let(:csrf_token) do
@@ -21,17 +21,6 @@ RSpec.describe V1::SearchesController, type: :request do
   let(:csrf_token_headers) { { 'X-CSRF-Token' => csrf_token } }
   let(:csrf_token_auth_headers) do
     auth_headers.merge('X-CSRF-Token' => csrf_token)
-  end
-
-  describe 'GET #index (not logged in)' do
-    it 'returns 401' do
-      get '/v1/searches',
-          params: { model: 'user', contents: '', method: 'partial', data_type: 'users', page: 1, page_size: 1 },
-          headers: csrf_token_headers
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
   end
 
   describe 'GET #index (logged in)' do

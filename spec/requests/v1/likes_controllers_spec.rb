@@ -20,16 +20,6 @@ RSpec.describe V1::LikesController, type: :request do
     auth_headers.merge('X-CSRF-Token' => csrf_token)
   end
 
-  describe 'GET #index (not logged in)' do
-    let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
-    it 'returns 401' do
-      get "/v1/tasks/#{task.id}/likes", params: { task_id: task.id }, headers: csrf_token_headers
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'GET #index (logged in)' do
     let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
     context 'when there are likes' do
@@ -68,15 +58,6 @@ RSpec.describe V1::LikesController, type: :request do
         json_response = JSON.parse(response.body)
         expect(json_response['errors']).to eq('Task not found')
       end
-    end
-  end
-
-  describe 'POST #create (not logged in)' do
-    it 'returns 401' do
-      post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: current_user.id },
-                                         headers: csrf_token_headers
-      expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
     end
   end
 
@@ -125,19 +106,6 @@ RSpec.describe V1::LikesController, type: :request do
         json_response = JSON.parse(response.body)
         expect(json_response['errors']).to eq('Task not found')
       end
-    end
-  end
-
-  describe 'DELETE #destroy (not logged in)' do
-    let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
-    let(:like_task_id) { like.task_id }
-    let(:like_user_id) { like.user_id }
-    it 'returns 401' do
-      delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: current_user.id },
-                                                      headers: csrf_token_headers
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 

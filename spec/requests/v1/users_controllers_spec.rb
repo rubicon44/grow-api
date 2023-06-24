@@ -32,22 +32,6 @@ RSpec.describe V1::UsersController, type: :request do
     auth_headers2.merge('X-CSRF-Token' => csrf_token2)
   end
 
-  describe 'GET #show (not logged in)' do
-    it 'returns 401' do
-      get "/v1/#{user1.username}", headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      get '/v1/nonexistent_user', headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'GET #show (logged in)' do
     let!(:task3_by_user1) { FactoryBot.create(:task, title: 'task3_by_user1', user: user1) }
     let!(:task4_by_user1) { FactoryBot.create(:task, title: 'task4_by_user1', user: user1) }
@@ -330,23 +314,6 @@ RSpec.describe V1::UsersController, type: :request do
     end
   end
 
-  describe 'GET #followings (not logged in)' do
-    let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
-    it 'returns 401' do
-      get "/v1/#{user1.username}/followings", headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      get '/v1/nonexistent_user/followings', headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'GET #followings (logged in)' do
     context 'when user has followings' do
       let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
@@ -398,23 +365,6 @@ RSpec.describe V1::UsersController, type: :request do
         get '/v1/non_existing_user/followings', headers: csrf_token_auth_headers1
         expect(response).to have_http_status(404)
       end
-    end
-  end
-
-  describe 'GET #followers (not logged in)' do
-    let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
-    it 'returns 401' do
-      get "/v1/#{user1.username}/followers", headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      get '/v1/nonexistent_user/followers', headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -577,29 +527,6 @@ RSpec.describe V1::UsersController, type: :request do
     end
   end
 
-  describe 'PUT #update (not logged in)' do
-    let!(:user3) { FactoryBot.create(:user) }
-    let(:csrf_token3) do
-      get '/v1/csrf_token'
-      JSON.parse(response.body)['csrf_token']['value']
-    end
-    let(:csrf_token_headers3) { { 'X-CSRF-Token' => csrf_token3 } }
-
-    it 'returns 401' do
-      put "/v1/#{user3.username}", headers: csrf_token_headers3
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      put '/v1/nonexistent_user', headers: csrf_token_headers3
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'PUT #update (logged in)' do
     context 'when the user is the owner' do
       let!(:user4) { FactoryBot.create(:user) }
@@ -694,6 +621,5 @@ RSpec.describe V1::UsersController, type: :request do
     end
   end
 
-  # TODO: describe 'GET #destroy (not logged in)' do
-  # todo: describe 'GET #destroy (logged in)' do
+  # TODO: describe 'GET #destroy (logged in)' do
 end

@@ -16,12 +16,39 @@ RSpec.describe V1::TasksController, type: :request do
     auth_headers.merge('X-CSRF-Token' => csrf_token)
   end
 
+  # 「not logged in」はtasksのみに定義
   describe 'GET #index (not logged in)' do
-    it 'returns 401' do
-      get '/v1/tasks', headers: csrf_token_headers
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
+    context 'when Authorization token is missing' do
+      it 'returns 401 with error message' do
+        get '/v1/tasks', headers: csrf_token_headers
+        expect(response).to have_http_status(401)
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('Authorization token is missing')
+      end
+    end
+
+    context 'when the user does not exist' do
+      it 'renders unauthorized with RecordNotFound error' do
+        allow(JsonWebToken).to receive(:decode).and_raise(ActiveRecord::RecordNotFound)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers
+
+        expect(response).to have_http_status(401)
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('ActiveRecord::RecordNotFound')
+      end
+    end
+
+    context 'when the token cannot be decoded' do
+      it 'renders unauthorized with DecodeError' do
+        allow(JsonWebToken).to receive(:decode).and_raise(JWT::DecodeError)
+
+        get '/v1/tasks', headers: csrf_token_auth_headers
+
+        expect(response).to have_http_status(401)
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('JWT::DecodeError')
+      end
     end
   end
 
