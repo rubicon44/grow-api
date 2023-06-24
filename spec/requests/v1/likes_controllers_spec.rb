@@ -98,6 +98,8 @@ RSpec.describe V1::LikesController, type: :request do
         post "/v1/tasks/#{task.id}/likes", params: { task_id: task.id, current_user_id: nil },
                                            headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('Current User not found')
       end
     end
 
@@ -154,8 +156,10 @@ RSpec.describe V1::LikesController, type: :request do
       let!(:like) { FactoryBot.create(:like, user_id: current_user.id, task_id: task.id) }
       it 'returns 422 if current_user_id is missing' do
         delete "/v1/tasks/#{task.id}/likes/#{like.id}", params: { task_id: task.id, current_user_id: nil },
-                                                        headers: headers
+                                                        headers: csrf_token_auth_headers
         expect(response).to have_http_status(422)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to eq('Current User not found')
       end
     end
 
