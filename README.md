@@ -42,7 +42,7 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
 https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
 
 ## AWS構成図（Cacoo使用）
-https://github.com/rubicon44/rubicon44-techblog/assets/47108632/88c03705-2f58-47c7-82a0-ef0b90a4b4fa
+https://github.com/rubicon44/grow-api/assets/47108632/83576885-0bad-45a8-89d8-29abc2dbdb0e
 
 ## 機能一覧
 - ログイン機能/ユーザー登録機能
