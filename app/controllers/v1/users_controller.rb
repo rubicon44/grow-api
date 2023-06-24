@@ -59,7 +59,7 @@ module V1
         user.id, current_user_id
       )
 
-      update_user(user)
+      render json: user, status: :ok if user.update(params_user_update)
     end
 
     # TODO: 追加予定
@@ -125,14 +125,6 @@ module V1
           .order('likes.id DESC')
           .limit(page_size)
           .offset((page - 1) * page_size)
-    end
-
-    def update_user(user)
-      if user.update(params_user_update)
-        render json: user, status: :ok
-      else
-        render_unprocessable_entity(user)
-      end
     end
   end
 end
