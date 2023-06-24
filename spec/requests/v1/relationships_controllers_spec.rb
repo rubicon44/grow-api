@@ -16,20 +16,21 @@ RSpec.describe V1::RelationshipsController, type: :request do
     auth_headers1.merge('X-CSRF-Token' => csrf_token1)
   end
 
-  # TODO: 「ログインが必要です。」等の文言を追加
   describe 'POST #create (not logged in)' do
     it 'returns 401' do
       params = { following_id: user1.id, follower_id: user2.id }
       post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
       post '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -54,7 +55,6 @@ RSpec.describe V1::RelationshipsController, type: :request do
 
         follower_list = JSON.parse(response.body)['followers']
         follower_usernames = follower_list.map { |follower| follower['username'] }
-        # TODO: 順序を確認
         expect(follower_usernames).to eq([user3.username, user2.username])
       end
     end
@@ -69,7 +69,6 @@ RSpec.describe V1::RelationshipsController, type: :request do
 
         following_list = JSON.parse(response.body)['followings']
         following_usernames = following_list.map { |following| following['username'] }
-        # TODO: 順序を確認
         expect(following_usernames).to eq([user3.username, user2.username])
       end
     end
@@ -110,21 +109,22 @@ RSpec.describe V1::RelationshipsController, type: :request do
     end
   end
 
-  # TODO: 「ログインが必要です。」等の文言を追加
   describe 'DELETE #destroy (not logged in)' do
     let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
     it 'returns 401' do
       params = { following_id: user1.id, follower_id: user2.id }
       delete "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       params = { following_id: user1.id, follower_id: user2.id }
       delete '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 

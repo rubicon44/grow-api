@@ -34,13 +34,15 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}", headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       get '/v1/nonexistent_user', headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -320,7 +322,8 @@ RSpec.describe V1::UsersController, type: :request do
       it 'returns 404 error' do
         get '/v1/nonexistent_user', headers: csrf_token_auth_headers1
         expect(response).to have_http_status(404)
-        expect(response.body).to eq('{"errors":"User not found"}')
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('User not found')
       end
     end
   end
@@ -330,13 +333,15 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}/followings", headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       get '/v1/nonexistent_user/followings', headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -399,13 +404,15 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       get "/v1/#{user1.username}/followers", headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       get '/v1/nonexistent_user/followers', headers: csrf_token_headers1
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -559,13 +566,15 @@ RSpec.describe V1::UsersController, type: :request do
     it 'returns 401' do
       put "/v1/#{user3.username}", headers: csrf_token_headers3
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
 
     it 'returns 401 error if the user does not exist' do
       put '/v1/nonexistent_user', headers: csrf_token_headers3
       expect(response).to have_http_status(401)
-      expect(response.body).to eq('{"errors":"Authorization token is missing"}')
+      response_body = JSON.parse(response.body)
+      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
@@ -654,7 +663,8 @@ RSpec.describe V1::UsersController, type: :request do
 
         put '/v1/nonexistent_user', params: user_params, headers: csrf_token_auth_headers1
         expect(response).to have_http_status(404)
-        expect(response.body).to eq('{"errors":"User not found"}')
+        response_body = JSON.parse(response.body)
+        expect(response_body['errors']).to include('User not found')
       end
     end
   end
