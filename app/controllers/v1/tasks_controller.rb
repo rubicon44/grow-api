@@ -38,7 +38,9 @@ module V1
 
     def destroy
       task = find_task
-      task.destroy ? render_no_content : render_not_destroyed('Task')
+      return render_not_found('Task') unless task
+
+      render_no_content if task.destroy
     end
 
     private

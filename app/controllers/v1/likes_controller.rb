@@ -22,7 +22,7 @@ module V1
       return render_conflict('User has already liked this task') if Like.user_already_liked?(current_user,
                                                                                              task)
 
-      create_like(current_user, task)
+      render_no_content if Like.create_like_and_notification(current_user, task)
     end
 
     def destroy
@@ -35,7 +35,7 @@ module V1
       return render_not_found('Likes') if likes.empty?
       return render_forbidden("Cannot delete other user's likes") unless Like.user_owns_likes?(current_user, likes)
 
-      delete_like(current_user, task)
+      render_no_content if current_user.unlike(task)
     end
 
     private
@@ -43,22 +43,6 @@ module V1
     # TODO: delete時のstrong_parameterを作成するか検討。
     def params_like_create
       params.permit(:task_id, :current_user_id)
-    end
-
-    def create_like(current_user, task)
-      if Like.create_like_and_notification(current_user, task)
-        render_no_content
-      else
-        render_not_created('Like')
-      end
-    end
-
-    def delete_like(current_user, task)
-      if current_user.unlike(task)
-        render_no_content
-      else
-        render_not_destroyed('Like')
-      end
     end
   end
 end

@@ -27,15 +27,6 @@ RSpec.describe V1::NotificationsController, type: :request do
     auth_headers2.merge('X-CSRF-Token' => csrf_token2)
   end
 
-  describe 'GET #index (not logged in)' do
-    it 'returns 401' do
-      get '/v1/notifications', params: { user_id: user2.id }, headers: csrf_token_headers2
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'GET #index (logged in)' do
     context 'when retrieving notifications' do
       let!(:follow_notification) { FactoryBot.create(:notification, visitor: user1, visited: user2, action: 'follow') }

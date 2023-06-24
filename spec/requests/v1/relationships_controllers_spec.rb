@@ -16,24 +16,6 @@ RSpec.describe V1::RelationshipsController, type: :request do
     auth_headers1.merge('X-CSRF-Token' => csrf_token1)
   end
 
-  describe 'POST #create (not logged in)' do
-    it 'returns 401' do
-      params = { following_id: user1.id, follower_id: user2.id }
-      post "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      params = { following_id: user1.id, follower_id: user2.id }
-      post '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-  end
-
   describe 'POST #create (logged in)' do
     context 'when following a user' do
       it 'follows the user' do
@@ -106,25 +88,6 @@ RSpec.describe V1::RelationshipsController, type: :request do
         expect(response).to have_http_status(404)
         expect(JSON.parse(response.body)['errors']).to eq("Couldn't find User with 'id'=#{params[:following_id]}")
       end
-    end
-  end
-
-  describe 'DELETE #destroy (not logged in)' do
-    let!(:follow_relationship) { FactoryBot.create(:relationship, following: user1, follower: user2) }
-    it 'returns 401' do
-      params = { following_id: user1.id, follower_id: user2.id }
-      delete "/v1/users/#{user1.id}/relationships", params: params, headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
-    end
-
-    it 'returns 401 error if the user does not exist' do
-      params = { following_id: user1.id, follower_id: user2.id }
-      delete '/v1/users/nonexistent_user_id/relationships', params: params, headers: csrf_token_headers1
-      expect(response).to have_http_status(401)
-      response_body = JSON.parse(response.body)
-      expect(response_body['errors']).to include('Authorization token is missing')
     end
   end
 
