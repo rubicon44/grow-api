@@ -16,7 +16,10 @@ class Search < ApplicationRecord
   end
 
   def self.search_users(contents, method)
-    users = User.where('username LIKE ? OR nickname LIKE ?', "%#{contents}%", "%#{contents}%") if method == 'partial'
+    if method == 'partial'
+      users = User.where('username LIKE ? OR nickname LIKE ? OR bio LIKE ?', "%#{contents}%", "%#{contents}%",
+                         "%#{contents}%")
+    end
     users || []
   end
 end
