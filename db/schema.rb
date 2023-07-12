@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_07_10_114648) do
+ActiveRecord::Schema[7.0].define(version: 2023_07_11_203012) do
   create_table "likes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "task_id", null: false
     t.bigint "user_id", null: false
@@ -63,6 +63,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_10_114648) do
     t.string "password_digest"
     t.string "bio", limit: 160
     t.string "username", limit: 15, null: false
+    t.string "avatar_url"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
