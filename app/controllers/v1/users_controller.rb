@@ -62,15 +62,15 @@ module V1
       render json: user, status: :ok if user.update(params_user_update)
     end
 
-    def upload_avatar
-      avatar_file = params[:file]
-      return render_not_found('avatar_file') unless avatar_file
+    # def upload_avatar
+    #   avatar_file = params[:file]
+    #   return render_not_found('avatar_file') unless avatar_file
 
-      avatar_url = S3Uploader.upload_avatar_url_to_s3(avatar_file) if avatar_file.present?
-      return render_not_found('avatar_url') unless avatar_url
+    #   avatar_url = S3Uploader.upload_avatar_url_to_s3(avatar_file) if avatar_file.present?
+    #   return render_not_found('avatar_url') unless avatar_url
 
-      render json: avatar_url, status: :ok
-    end
+    #   render json: avatar_url, status: :ok
+    # end
 
     # TODO: 追加予定
     # def destroy
