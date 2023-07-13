@@ -23,6 +23,7 @@ gem 'puma', '~> 6.2', '>= 6.2.2'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem 'active_model_serializers', '~> 0.10.13'
+gem 'aws-sdk-s3'
 gem 'bootsnap', '~> 1.16', require: false
 gem 'config', '~> 4.1'
 gem 'dotenv-rails', '~> 2.8', '>= 2.8.1', require: 'dotenv/rails-now'
