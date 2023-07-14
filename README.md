@@ -20,8 +20,8 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
 ### フロントエンド
 - Atomic Designを適用し、基本的なコンポーネント分割を行っている
 - コンポーネントにfeatureフォルダーを適用し、Atomic Designをより使いやすくカスタマイズしている
-- コンポーネントにPresentational/Containerパターンを適用し、Hooksの呼び出し位置を制限することで、可読性とメンテナンス性を向上
-- カスタムHooksを使用し、API通信用のロジックをコンポーネントから分離
+- コンポーネントにPresentational/Containerパターンを適用し、Hooksの呼び出し位置を制限することで、可読性とメンテナンス性を向上している
+- カスタムHooksを使用し、API通信用のロジックをコンポーネントから分離している
 - API通信時には、try-catch文を用いて基本的なエラーハンドリングを行っている
 - 「eslint-config-airbnb」を適用し、厳格な静的解析を行なっている
   - 一部カスタマイズあり(アロー関数の許容など)
@@ -38,6 +38,12 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
 - GitHub Actionsによる自動デプロイを実装できている
 - GitHubブランチをmainとdevelopに分け、実践的なコード管理をしている
 - Formatter/Linterを用いコード整形を行っている
+
+## インフラ構成図（Cacoo使用）
+https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-baa2621d8e4b
+
+## DB設計図（Cacoo使用）
+https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
 
 ## 環境/使用技術
 - M1 Mac: Memory 16GB
@@ -68,12 +74,6 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
   - SPA: Vercel
   - API: ECS + ECR + RDS
 - CI/CD: GitHub Actions
-
-## DB設計図（Cacoo使用）
-https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
-
-## インフラ構成図（Cacoo使用）
-https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-baa2621d8e4b
 
 ## 機能一覧
 - ログイン機能/ユーザー登録機能
@@ -117,13 +117,6 @@ https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-ba
 
 ※検索機能の結果は10件表示、それ以外の無限スクロールは3件ずつの表示になっています。
 
-## 今回実装していないこと
-- コメント機能、チャット機能はmustな要件でないため未実装
-- プロバイダー認証とemail/password認証のアカウント統合
-- validatorクラス
-  - サービス規模が大きくなく、ロジックも複雑でないため、Modelにそのまま定義。
-  - バリデーションを一括で定義することにより、Modelを見やすくし、今後カスタムバリデータへの分割を想定し、バリデーションをカスタムメソッドとして定義。
-
 ## 実装予定の機能
 - タスクのcontent内のチェックボックス永続化
 - 管理者機能
@@ -133,6 +126,13 @@ https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-ba
 - ブロック機能
 - ミュート機能
 - React QueryやRedisを用いたパフォーマンス改善
+
+## 今回実装していないこと
+- コメント機能、チャット機能はmustな要件でないため未実装
+- プロバイダー認証とemail/password認証のアカウント統合
+- validatorクラス
+  - サービス規模が大きくなく、ロジックも複雑でないため、Modelにそのまま定義。
+  - バリデーションを一括で定義することにより、Modelを見やすくし、今後カスタムバリデータへの分割を想定し、バリデーションをカスタムメソッドとして定義。
 
 # 今回の開発を終えての所感/今後に向けて
 今回は1人で初めて、フロントエンドとバックエンドを分離したWebサービスを作成しました。
