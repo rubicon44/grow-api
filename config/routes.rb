@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     get '/csrf_token', to: 'csrf_tokens#new'
     get '/:username', to: 'users#show'
     put '/:username', to: 'users#update'
-    # post '/:username/upload_avatar', to: 'users#upload_avatar'
+    post '/:username/upload_avatar', to: 'users#upload_avatar'
     get '/:username/followings', to: 'users#followings'
     get '/:username/followers', to: 'users#followers'
     post '/users/sign_in', to: 'sessions#create'
