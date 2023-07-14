@@ -145,7 +145,7 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
 
 バックエンドに関しては、1つのエンドポイントだけでなく、機能ごとにAPIを分離したり、それらをまとめるBFFを作成したいと思いました。
 
-また、Clean Architectureやマイクロサービスにも興味が湧いたので、現在「Next.js、Express API、Prisma、Clean Architecture」を用いてアプリケーション開発を行なっています。
+また、Clean Architectureやマイクロサービスにも興味が湧いたので、現在「Next.js、TypeScript、Express API、Prisma、Clean Architecture」を用いてアプリケーション開発を行なっています。
 
 「コンポーネント分割」に関しては様々な手法があるので、より多くのコンポーネント分割/設計手法を学び、メンテナンスしやすいコンポーネントを素早く実装できるようになりたいです。
 
