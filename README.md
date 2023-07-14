@@ -39,6 +39,12 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
 - GitHubブランチをmainとdevelopに分け、実践的なコード管理をしている
 - Formatter/Linterを用いコード整形を行っている
 
+## インフラ構成図（Cacoo使用）
+https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-baa2621d8e4b
+
+## DB設計図（Cacoo使用）
+https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
+
 ## 環境/使用技術
 - M1 Mac: Memory 16GB
 - Docker Desktop: 4.19.0
@@ -68,12 +74,6 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
   - SPA: Vercel
   - API: ECS + ECR + RDS
 - CI/CD: GitHub Actions
-
-## DB設計図（Cacoo使用）
-https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
-
-## インフラ構成図（Cacoo使用）
-https://github.com/rubicon44/grow-api/assets/47108632/07f00e76-3b63-40d9-b864-baa2621d8e4b
 
 ## 機能一覧
 - ログイン機能/ユーザー登録機能
