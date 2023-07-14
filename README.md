@@ -42,7 +42,7 @@ SNS風にすることで、個人のタスク管理を閲覧できるように�
 - Formatter/Linterを用いコード整形を行っている
 
 ## インフラ構成図（Cacoo使用）
-https://github.com/rubicon44/grow-api/assets/47108632/b456e4c0-c732-4622-9115-8583001a0d8a
+https://github.com/rubicon44/grow-api/assets/47108632/e9f6dcf2-04f7-4736-b47b-97b7c9a405df
 
 ## DB設計図（Cacoo使用）
 https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-dfb9b2b2e0c3
