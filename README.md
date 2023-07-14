@@ -78,6 +78,10 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
 
 ## 機能一覧
 - ログイン機能/ユーザー登録機能
+  - email/password認証
+  - プロバイダー認証
+    - Google
+    - GitHub
 
 - タスク管理機能
   - 登録（title、content、status、startData、endDateの5つを登録可能）
