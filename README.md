@@ -104,7 +104,7 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
   - 詳細表示
   - 編集
   - 画像アップロード
-  ~~- 削除~~ : 未実装
+  ~~- 削除~~
 
 - フォロー機能
   - 作成(フォロー)
