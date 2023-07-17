@@ -138,7 +138,8 @@ https://github.com/rubicon44/grow-api/assets/47108632/ce5ad1a2-a04d-49cc-a9e9-df
   - 通知
 - ブロック機能
 - ミュート機能
-- React QueryやRedisを用いたパフォーマンス改善
+- React Queryを用いたパフォーマンス改善
+- Redis + Sidekiqを用いた「タスクの期限通知」
 - 通知一覧表示機能の無限スクロール
 - フロントエンドのE2Eテスト
 - TypeScriptの導入
