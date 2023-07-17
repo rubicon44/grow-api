@@ -2,681 +2,798 @@ openapi: 3.0.0
 info:
   title: grow
   version: '1.0'
-servers: []
+servers:
+  - url: /v1
 
 paths:
-  /v1/users/sign_in:
-    post:
-      tags:
-        - signin
-      summary: Create a idToken
-      description: Returns a idToken
-      operationId: post-sign_in
-      parameters:
-        - name: idToken
-          in: header
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserSignIn'
-  /v1/users:
+  /csrf_token:
     get:
       tags:
-        - user
-      summary: Find all user
-      description: Returns all user
-      operationId: get-users
+        - csrf_token
+      summary: Get Csrf Token
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Users'
-        '404':
-          description: Users not found
-      security:
-        - ApiKeyAuth: []
+          $ref: '#/components/responses/CsrfTokenOK'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /users:
     post:
       tags:
-        - user
+        - users
       summary: Create a new user
-      description: Create a new user
-      operationId: post-user
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewUser'
+        $ref: '#/components/requestBodies/UserRequestBody'
       responses:
         '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserAfterCreate'
-  /v1/{username}:
-    get:
-      tags:
-        - user
-      summary: Find a user by username
-      description: Returns a single user
-      operationId: get-user
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+          $ref: '#/components/responses/Created'
         '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-      security:
-        - ApiKeyAuth: []
-    put:
-      tags:
-        - user
-      summary: Update an existing user
-      description: Update an existing user by username
-      operationId: update-user
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Update an existent user
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-      security:
-        - ApiKeyAuth: []
-  /v1/tasks:
-    get:
-      tags:
-        - task
-      summary: Find tasks
-      description: Returns all tasks
-      operationId: get-tasks
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tasks'
-        '404':
-          description: Tasks not found
-      security:
-        - ApiKeyAuth: []
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/sign_in:
     post:
       tags:
-        - task
+        - sign_in
+      summary: Create a new user
+      requestBody:
+        $ref: '#/components/requestBodies/UserRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignInOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/{user_id}/relationships:
+    post:
+      security:
+        - JWTAuth: []
+      tags:
+        - relationships
+      summary: Create a relationship
+      parameters:
+        - $ref: '#/components/parameters/UserIdPathParam'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      security:
+        - JWTAuth: []
+      tags:
+        - relationships
+      summary: Delete a relationship
+      parameters:
+        - $ref: '#/components/parameters/UserIdPathParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /{username}:
+    get:
+      security:
+        - JWTAuth: []
+      tags:
+        - user
+      summary: Get a user by username
+      parameters:
+        - $ref: '#/components/parameters/UsernamePathParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      security:
+        - JWTAuth: []
+      tags:
+        - user
+      summary: Update a user by username
+      parameters:
+        - $ref: '#/components/parameters/UsernamePathParam'
+      requestBody:
+        $ref: '#/components/requestBodies/UserUpdateInputRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    # delete:
+    #   security:
+    #     - JWTAuth: []
+    #   tags:
+    #     - users
+    #   summary: Delete a user by username
+    #   parameters:
+    #     - $ref: '#/components/parameters/UsernamePathParam'
+    #   responses:
+    #     '204':
+    #       $ref: '#/components/responses/NoContent'
+    #     '400':
+    #       $ref: '#/components/responses/BadRequest'
+    #     '401':
+    #       $ref: '#/components/responses/Unauthorized'
+    #     '403':
+    #       $ref: '#/components/responses/Forbidden'
+    #     '404':
+    #       $ref: '#/components/responses/ResourceNotFound'
+    #     '500':
+    #       $ref: '#/components/responses/InternalServerError'
+  /{username}/followings:
+    get:
+      security:
+        - JWTAuth: []
+      tags:
+        - followings
+      summary: Get followigs by username
+      parameters:
+        - $ref: '#/components/parameters/UsernamePathParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/FollowingsOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /{username}/followers:
+    get:
+      security:
+        - JWTAuth: []
+      tags:
+        - followers
+      summary: Get followers by username
+      parameters:
+        - $ref: '#/components/parameters/UsernamePathParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/FollowersOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /{username}/upload_avatar:
+    post:
+      security:
+        - JWTAuth: []
+      tags:
+        - upload_avatar
+      summary: Upload user avatar
+      parameters:
+        - $ref: '#/components/parameters/UsernamePathParam'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /tasks:
+    get:
+      security:
+        - JWTAuth: []
+      tags:
+        - tasks
+      summary: Get all tasks
+      responses:
+        '200':
+          $ref: '#/components/responses/TasksOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      security:
+        - JWTAuth: []
+      tags:
+        - tasks
       summary: Create a new task
-      description: Create a new task
-      operationId: post-task
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Task'
+        $ref: '#/components/requestBodies/TaskRequestBody'
       responses:
         '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-  /v1/tasks/{id}:
-    get:
-      tags:
-        - task
-      summary: Find a task
-      description: Returns a task
-      operationId: get-task
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-        '404':
-          description: Task not found
-      security:
-        - ApiKeyAuth: []
-    put:
-      tags:
-        - task
-      summary: Update an existing task
-      description: Update an existing task by id
-      operationId: update-task
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        description: Update an existent task
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Task'
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
+          $ref: '#/components/responses/Created'
         '400':
-          description: Invalid id supplied
-        '404':
-          description: Task not found
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  # /tasks/{id}:
+  /tasks/{task_id}:
+    get:
       security:
-        - ApiKeyAuth: []
-    delete:
+        - JWTAuth: []
       tags:
         - task
-      summary: Deletes a task
-      description: delete a task
-      operationId: delete-task
+      summary: Get a task
       parameters:
-        - name: id
-          in: path
-          description: Task id to delete
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: No Content
-      security:
-        - ApiKeyAuth: []
-  /v1/tasks/{task_id}/likes:
-    get:
-      tags:
-        - like
-      summary: Find likes
-      description: Returns likes
-      operationId: get-likes
-      parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/TaskIdPathParam'
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Likes'
+          $ref: '#/components/responses/TaskOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Likes not found
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
       security:
-        - ApiKeyAuth: []
-    post:
+        - JWTAuth: []
       tags:
-        - like
-      summary: Create a new like
-      description: Create a new like
-      operationId: post-like
+        - task
+      summary: Update a task
       parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/TaskIdPathParam'
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Like'
+        $ref: '#/components/requestBodies/TaskUpdateInputRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      security:
+        - JWTAuth: []
+      tags:
+        - task
+      summary: Delete a task
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPathParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /tasks/{task_id}/likes:
+    get:
+      security:
+        - JWTAuth: []
+      tags:
+        - likes
+      summary: Get all likes
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPathParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/LikesOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      security:
+        - JWTAuth: []
+      tags:
+        - likes
+      summary: Create a like
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPathParam'
+      requestBody:
+        $ref: '#/components/requestBodies/TaskUpdateInputRequestBody'
       responses:
         '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Like'
-  /v1/tasks/{task_id}/likes{id}:
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /tasks/{task_id}/likes/{id}:
     delete:
+      security:
+        - JWTAuth: []
       tags:
         - like
-      summary: Deletes a like
-      description: delete a like
-      operationId: delete-like
+      summary: Delete a like
       parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: id
-          in: path
-          description: Like id to delete
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/TaskIdPathParam'
+        - $ref: '#/components/parameters/LikeIdPathParam'
       responses:
         '204':
-          description: No Content
-      security:
-        - ApiKeyAuth: []
-  /v1/users/{user_id}/relationships:
-    post:
-      tags:
-        - relationship
-      summary: Create a new relationship
-      description: Create a new relationship
-      operationId: post-relationship
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Relationship'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Relationship'
-    delete:
-      tags:
-        - relationship
-      summary: Deletes a relationship
-      description: delete a relationship
-      operationId: delete-relationship
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: No Content
-      security:
-        - ApiKeyAuth: []
-  /v1/users/{id}/followings:
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /notifications:
     get:
+      security:
+        - JWTAuth: []
       tags:
-        - relationship
-      summary: Find followings
-      description: Returns followings
-      operationId: get-followings
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - notifications
+      summary: Get all notifications
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Relationships'
+          $ref: '#/components/responses/NotificationsOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Followings not found
-      security:
-        - ApiKeyAuth: []
-  /v1/users/{id}/followers:
-     get:
-      tags:
-        - relationship
-      summary: Find followers
-      description: Returns followers
-      operationId: get-followers
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Relationships'
-        '404':
-          description: Followers not found
-      security:
-        - ApiKeyAuth: []
-  /v1/notifications:
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /searches:
     get:
+      security:
+        - JWTAuth: []
       tags:
-        - notification
-      summary: Find notifications
-      description: Returns notifications
-      operationId: get-notifications
+        - searches
+      summary: Get all search results of users or tasks
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Notifications'
+          $ref: '#/components/responses/SearchesOK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Notifications not found
-      security:
-        - ApiKeyAuth: []
-    # post:
-  /v1/searches:
-    get:
-      tags:
-        - search
-      summary: Search value
-      description: Returns search result
-      operationId: get-search-result
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                # type: array
-                # items:
-                  $ref: '#/components/schemas/Tasks'
-                  # Not supported multiple $ref in Swagger.
-                  # $ref: '#/components/schemas/Users'
-        '404':
-          description: Searches not found
-      security:
-        - ApiKeyAuth: []
+          $ref: '#/components/responses/ResourceNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: Authorization
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
-    UserSignIn:
-      title: UserSignIn
+    CsrfToken:
+      type: object
+      properties:
+        csrf_token:
+          type: string
+    SignIn:
       type: object
       properties:
         token:
           type: string
-          example: 1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP1HUPqJIISZxnZunShlSISenP
         user:
-          allOf:
-            - type: object
-            - $ref: '#/components/schemas/User'
+          $ref: '#/components/schemas/User'
+        exp:
+          type: string
     User:
-      title: User
       type: object
-      description: ユーザー
       properties:
-        id:
-          type: integer
-          example: 1
-        email:
-          type: string
-          example: abc@abc.com
-        username:
-          type: string
-          example: 山本 太郎
-        nickname:
-          type: string
-          example: たろう
-        bio:
-          type: string
-          example: 自己紹介文が入ります。自己紹介文が入ります。
         firebase_id:
           type: string
-          example: 0123456789
-      required:
-        - id
-        - email
-        - username
-        - nickname
-    Users:
-      title: User List
-      type: object
-      description: User List
-      properties:
-        # total_pages:
-        #   type: integer
-        #   example: 2
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-    UserAfterCreate:
-      title: UserAfterCreate
-      type: object
-      description: UserAfterCreate
-      properties:
-        user:
-          allOf:
-            - type: object
-            - $ref: '#/components/schemas/User'
-        code_error_signup:
-          type: string
-          example: 2J8ASBK9SJHBJUIOHU8976SASAS9SA7AS
-    NewUser:
-      title: NewUser
-      type: object
-      description: 新規ユーザー
-      properties:
-        id:
-          type: integer
-          example: 1
-        email:
-          type: string
-          example: abc@abc.com
-        username:
-          type: string
-          example: 山田 二郎
-        nickname:
-          type: string
-          example: じろう
         bio:
           type: string
-          example: 自己紹介文が入ります。自己紹介文が入ります。
-        firebase_id:
+        email:
           type: string
-          example: 0123456789
+        nickname:
+          type: string
+        username:
+          type: string
     Task:
-      title: Task
       type: object
-      description: タスク
       properties:
-        id:
+        user_id:
           type: integer
-          example: 1
         title:
           type: string
-          example: タスクのタイトルが入ります。タスクのタイトルが入ります。
         content:
-          # text
           type: string
-          example: タスクの内容が入ります。タスクの内容が入ります。
-        user_id:
-          # bigint
-          type: integer
-          example: 1
         status:
-          type: integer
-          example: 0
+          type: string
         start_date:
           type: string
-          example: 2022-01-01
+          format: date
         end_date:
           type: string
-          example: 2022-12-31
-      required:
-        - id
-        - title
-        - user_id
-        - status
-        - start_date
-        - end_date
-    Tasks:
-      title: Task List
-      type: object
-      description: Task List
-      properties:
-        # total_pages:
-        #   type: integer
-        #   example: 2
-        tasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
+          format: date
     Like:
-      title: Like
       type: object
-      description: いいね
       properties:
-        id:
-          type: integer
-          example: 1
-        task_id:
-          # bigint
-          type: integer
-          example: 1
         user_id:
-          # bigint
           type: integer
-          example: 1
-      required:
-        - id
-        - task_id
-        - user_id
-    Likes:
-      title: Like List
-      type: object
-      description: Like List
-      properties:
-        # total_pages:
-        #   type: integer
-        #   example: 2
-        likes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Like'
-    Relationship:
-      title: Relationship
-      type: object
-      description: フォロー
-      properties:
-        id:
-          type: integer
-          example: 1
-        following_id:
-          # bigint
-          type: integer
-          example: 1
-        follower_id:
-          # bigint
-          type: integer
-          example: 1
-      required:
-        - id
-        - following_id
-        - follower_id
-    Relationships:
-      title: Relationship List
-      type: object
-      description: Relationship List
-      properties:
-        # total_pages:
-        #   type: integer
-        #   example: 2
-        relationships:
-          type: array
-          items:
-            $ref: '#/components/schemas/Relationship'
-    Notification:
-      title: Notification
-      type: object
-      description: 通知
-      properties:
-        id:
-          type: integer
-          example: 1
         task_id:
-          # bigint
           type: integer
-          example: 1
+    Likes:
+      type: object
+      properties:
+        likes:
+          $ref: '#/components/schemas/Like'
+        like_count:
+          type: integer
+    Notification:
+      type: object
+      properties:
+        task_id:
+          type: integer
+        visited_id:
+          type: integer
+        visitor_id:
+          type: integer
         action:
           type: string
-          example: like
         checked:
-          # bigint
           type: boolean
-          example: false
-        visitor_id:
-          # bigint
-          type: integer
-          example: 1
-        visited_id:
-          # bigint
-          type: integer
-          example: 2
-      required:
-        - id
-        - following_id
-        - follower_id
     Notifications:
-      title: Notification List
       type: object
-      description: Notification List
       properties:
-        # total_pages:
-        #   type: integer
-        #   example: 2
+        follow_visitors:
+          $ref: '#/components/schemas/User'
+        like_visitors:
+          $ref: '#/components/schemas/User'
         notifications:
+          $ref: '#/components/schemas/Notification'
+    Searches:
+      type: object
+      properties:
+        task:
+          $ref: '#/components/schemas/Task'
+        user:
+          $ref: '#/components/schemas/User'
+    UserUpdateInput:
+      type: object
+      properties:
+        bio:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        username:
+          type: string
+    TaskUpdateInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: integer
+        start_date:
+          type: string
+        end_date:
+          type: string
+    Error:
+      type: object
+      properties:
+        errors:
           type: array
           items:
-            $ref: '#/components/schemas/Notification'
+            type: string
+
+  parameters:
+    UserIdPathParam:
+      in: path
+      name: user_id
+      schema:
+        type: integer
+      required: true
+      description: Id of the user
+    UsernamePathParam:
+      in: path
+      name: username
+      schema:
+        type: string
+      required: true
+      description: Username of the user
+    TaskIdPathParam:
+      in: path
+      name: task_id
+      schema:
+        type: integer
+      required: true
+      description: ID of the task
+    LikeIdPathParam:
+      in: path
+      name: id
+      schema:
+        type: integer
+      required: true
+      description: ID of the like
+
+  requestBodies:
+    UserRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    TaskRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    UserUpdateInputRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserUpdateInput'
+    TaskUpdateInputRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskUpdateInput'
+
+  responses:
+    OK:
+      description: OK
+    CsrfTokenOK:
+      description: CsrfToken OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CsrfToken'
+    SignInOK:
+      description: SignIn OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SignIn'
+    UserOK:
+      description: User OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    FollowingsOK:
+      description: Followings OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+    FollowersOK:
+      description: Followers OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+    TaskOK:
+      description: Task OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    TasksOK:
+      description: Tasks OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Task'
+    LikesOK:
+      description: Likes OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Likes'
+    NotificationsOK:
+      description: Notifications OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Notifications'
+    SearchesOK:
+      description: Searches OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Searches'
+    Created:
+      description: Created
+    UserCreated:
+      description: User Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    TaskCreated:
+      description: Task Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+    NoContent:
+      description: No Content
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Invalid request."
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Authorization token is missing."
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Access denied."
+    ResourceConflict:
+      description: Resource Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Resource already exists."
+    ResourceNotFound:
+      description: Resource Not Found Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Resource not found."
+    UnprocessableEntity:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Invalid params."
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            errors:
+              - "Internal Server Error."
