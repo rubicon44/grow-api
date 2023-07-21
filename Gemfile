@@ -38,6 +38,7 @@ group :development, :test do
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
   gem 'database_cleaner', '~> 1.5', '>= 1.5.3'
   gem 'factory_bot_rails', '~> 6.2'
+  gem "rspec-core"
   gem 'rspec-rails', '~> 6.0', '>= 6.0.1'
   gem 'rubocop-rails', '~> 2.19', '>= 2.19.1', require: false
   gem 'simplecov', '~> 0.22.0'
