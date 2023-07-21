@@ -41,7 +41,7 @@ jobs:
         env:
           BUNDLE_PATH: vendor/bundle
         run: |
-          bundle exec rspec spec/requests/v1
+          rspec spec/requests/v1
 
   deploy:
     needs: [rspec]
