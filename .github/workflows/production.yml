@@ -41,9 +41,7 @@ jobs:
         env:
           BUNDLE_PATH: vendor/bundle
         run: |
-          rspec spec/requests/v1
-
-      - name: Run RSpec tests
+          bundle exec rspec spec/requests/v1
 
   deploy:
     needs: [rspec]
