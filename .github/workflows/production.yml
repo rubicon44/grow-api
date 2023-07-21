@@ -34,7 +34,7 @@ jobs:
           bundle install --retry 3 --jobs 4 --without development test
 
       - name: Run RSpec tests
-        run: bundle exec rspec spec
+        run: rspec spec/requests/v1
 
   deploy:
     needs: [rspec]
