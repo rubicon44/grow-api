@@ -45,6 +45,7 @@ jobs:
           RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
           RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
           RDS_PORT: ${{ secrets.RDS_PORT }}
+          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
 
       - name: Run RSpec tests
         run: bundle exec rspec spec/requests/v1
