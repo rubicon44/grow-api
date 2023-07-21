@@ -17,20 +17,36 @@ env:
 jobs:
   rspec:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup docker
-      shell: bash
-      run: |
-        docker-compose build
-        docker-compose run app rails db:create
-      env:
-        RAILS_ENV: test
-    - name: Rspec
-      run:  |
-        docker-compose run app bundle exec rspec
-      env:
-        RAILS_ENV: test
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.7
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --retry 3 --jobs 4
+
+      - name: Setup Database
+        run: |
+          sudo systemctl start mysql
+          bundle exec rake db:create RAILS_ENV=development
+        env:
+          RAILS_ENV: develop
+          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
+          RDS_PORT: ${{ secrets.RDS_PORT }}
+
+      - name: Run RSpec tests
+        run: bundle exec rspec spec/requests/v1
 
   deploy:
     needs: [rspec]
