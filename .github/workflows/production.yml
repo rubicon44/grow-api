@@ -17,6 +17,7 @@ env:
 jobs:
   rspec:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,6 +34,7 @@ jobs:
         env:
           BUNDLE_PATH: vendor/bundle
         run: |
+          gem install bundler
           bundle config path vendor/bundle
           bundle install --retry 3 --jobs 4 --without development test
 
