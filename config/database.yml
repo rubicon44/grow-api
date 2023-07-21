@@ -13,11 +13,11 @@ default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  database: <%= ENV['RDS_DB_NAME'] %>
-  username: <%= ENV['RDS_USERNAME'] %>
-  password: <%= ENV['RDS_PASSWORD'] %>
-  host: <%= ENV['RDS_HOSTNAME'] %>
-  port: <%= ENV['RDS_PORT'] %>
+  database: <%= ENV['RDS_DB_NAME'] || 'db' %>
+  username: <%= ENV['RDS_USERNAME'] || 'root' %>
+  password: <%= ENV['RDS_PASSWORD'] || '' %>
+  host: <%= ENV['RDS_HOSTNAME'] || 'localhost' %>
+  port: <%= ENV['RDS_PORT'] || '3306' %>
 
 development:
   <<: *default
