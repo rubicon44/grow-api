@@ -42,7 +42,6 @@ jobs:
 
       - name: Run RuboCop
         run: |
-          gem install rubocop
           rubocop
 
       - name: Configure AWS credentials
