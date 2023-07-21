@@ -15,6 +15,32 @@ env:
   ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
 
 jobs:
+  rspec:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.7
+
+      - name: Install dependencies
+        env:
+          BUNDLE_PATH: vendor/bundle
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --retry 3 --jobs 4 --without development test
+
+      - name: Run RSpec tests
+        env:
+          BUNDLE_PATH: vendor/bundle
+        run: |
+          bundle exec rspec spec/requests/v1
+
   deploy:
     runs-on: ubuntu-latest
 
@@ -39,10 +65,6 @@ jobs:
         run: |
           sudo apt-get -y install python3-pip
           sudo pip3 install awscli
-
-      - name: Run RuboCop
-        run: |
-          rubocop
 
       - name: Configure AWS credentials
         run: |
