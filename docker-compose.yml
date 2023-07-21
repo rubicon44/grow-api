@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${RDS_PASSWORD}
     ports:
-      - "3306:${RDS_PORT}"
+      - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
   app:
