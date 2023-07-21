@@ -42,6 +42,7 @@ jobs:
           bundle exec rspec spec/requests/v1
 
   deploy:
+    needs: [rspec]
     runs-on: ubuntu-latest
 
     steps:
