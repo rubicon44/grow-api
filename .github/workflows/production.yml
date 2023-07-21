@@ -31,10 +31,10 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --retry 3 --jobs 4 --without development test
+          bundle install --retry 3 --jobs 4
 
       - name: Run RSpec tests
-        run: rspec spec/requests/v1
+        run: bundle exec rspec spec/requests/v1
 
   deploy:
     needs: [rspec]
