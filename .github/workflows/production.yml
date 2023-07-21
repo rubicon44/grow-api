@@ -43,6 +43,11 @@ jobs:
           BUNDLE_PATH: vendor/bundle
         run: bundle exec gem install rspec
 
+      - name: Install RSpec Core
+        env:
+          BUNDLE_PATH: vendor/bundle
+        run: bundle exec gem install rspec-core
+
       - name: Run RSpec tests
         env:
           BUNDLE_PATH: vendor/bundle
