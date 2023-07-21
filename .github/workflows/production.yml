@@ -27,6 +27,25 @@ jobs:
         with:
           ruby-version: 2.7.7
 
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --retry 3 --jobs 4 --without development test
+
+      - name: Run RSpec tests
+        run: bundle exec rspec spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.7
+
       - name: Install bundler
         run: gem install bundler
 
