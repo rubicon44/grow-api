@@ -35,8 +35,8 @@ jobs:
 
       - name: Setup Database
         run: |
-          sudo systemctl start mysql
-          bundle exec rake db:create RAILS_ENV=development
+          bundle exec rails db:create RAILS_ENV=development
+          bundle exec rails db:migrate RAILS_ENV=development
         env:
           RAILS_ENV: develop
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
