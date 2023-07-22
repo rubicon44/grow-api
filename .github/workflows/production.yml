@@ -35,9 +35,8 @@ jobs:
 
       - name: Setup Database
         run: |
-          sudo systemctl start mysql
-          bundle exec rails db:create
-          bundle exec rails db:migrate
+          docker-compose build
+          docker-compose run app bundle exec rails db:create
         env:
           RAILS_ENV: test
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
