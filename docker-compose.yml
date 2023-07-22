@@ -5,6 +5,12 @@ services:
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: ${RDS_PASSWORD}
+      RDS_DB_NAME: ${RDS_DB_NAME}
+      RDS_USERNAME: ${RDS_USERNAME}
+      RDS_PASSWORD: ${RDS_PASSWORD}
+      RDS_HOSTNAME: ${RDS_HOSTNAME}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+      RAILS_ENV: ${RAILS_ENV}
     ports:
       - "3306:3306"
     volumes:
