@@ -22,20 +22,13 @@ jobs:
       db:
         image: mysql:8.0.32
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
+          # MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          # MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes # パスワード空を許可
+          BIND-ADDRESS: 0.0.0.0
         ports:
           - "3306:3306"
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    container:
-      image: ruby:2.7.7
-      env:
-        # RAILS_ENV: test
-        RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-        RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-        RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-        RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
-        RDS_PORT: ${{ secrets.RDS_PORT }}
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - name: Checkout code
