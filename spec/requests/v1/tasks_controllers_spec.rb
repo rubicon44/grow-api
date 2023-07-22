@@ -553,7 +553,7 @@ RSpec.describe V1::TasksController, type: :request do
       end
       it 'returns 403' do
         delete "/v1/tasks/#{task.id}", params: delete_invalid_params2, headers: csrf_token_auth_headers
-        expect(response).to have_http_status(444)
+        expect(response).to have_http_status(403)
         expect(Task.last.title).not_to eq('test_task_delete')
         response_body = JSON.parse(response.body)
         expect(response_body['errors']).to include('You are not authorized to delete this task')
