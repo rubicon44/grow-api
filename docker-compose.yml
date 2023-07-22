@@ -5,14 +5,8 @@ services:
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: ${RDS_PASSWORD}
-      RDS_DB_NAME: ${RDS_DB_NAME}
-      RDS_USERNAME: ${RDS_USERNAME}
-      RDS_PASSWORD: ${RDS_PASSWORD}
-      RDS_HOSTNAME: ${RDS_HOSTNAME}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      RAILS_ENV: ${RAILS_ENV}
     ports:
-      - "3306:3306"
+      - "3306:${RDS_PORT}"
     volumes:
       - db-data:/var/lib/mysql
   app:
@@ -23,7 +17,7 @@ services:
       RDS_PASSWORD: ${RDS_PASSWORD}
       RDS_HOSTNAME: ${RDS_HOSTNAME}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      RAILS_ENV: ${RAILS_ENV}
+      RAILS_ENV: development
     command: "bundle exec rails s -p 3000 -b 0.0.0.0"
     volumes:
       - .:/grow-api
