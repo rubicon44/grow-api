@@ -35,6 +35,7 @@ jobs:
 
       - name: Setup Database
         run: |
+          docker-compose build
           docker-compose up -d
           sleep 15
           bundle exec rails db:create RAILS_ENV=test
@@ -47,6 +48,7 @@ jobs:
           RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
           RDS_PORT: ${{ secrets.RDS_PORT }}
           FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
       - name: Run RSpec tests
         run: bundle exec rspec spec/requests/v1
