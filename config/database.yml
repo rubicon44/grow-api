@@ -16,7 +16,7 @@ default: &default
   database: <%= ENV['RDS_DB_NAME'] || 'db' %>
   username: <%= ENV['RDS_USERNAME'] || 'root' %>
   password: <%= ENV['RDS_PASSWORD'] || '12345678' %>
-  host: "localhost"
+  host: <%= ENV['RDS_HOSTNAME'] || 'db' %>
   port: <%= ENV['RDS_PORT'] || '3306' %>
 
 development:
