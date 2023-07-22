@@ -36,10 +36,8 @@ jobs:
       - name: Setup Database
         run: |
           docker-compose build
-          docker-compose up -d
-          sleep 15
-          bundle exec rails db:create RAILS_ENV=test
-          bundle exec rails db:migrate RAILS_ENV=test
+          docker-compose run app bundle exec rails db:create RAILS_ENV=test
+          docker-compose run app bundle exec rails db:migrate RAILS_ENV=test
         env:
           RAILS_ENV: develop
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
