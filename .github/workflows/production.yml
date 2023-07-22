@@ -18,28 +18,23 @@ jobs:
   rspec_and_rubocop:
     runs-on: ubuntu-latest
 
-    # services:
-    #   db:
-    #     image: mysql:8.0.32
-    #     env:
-    #       MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-    #       MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
-    #       MYSQL_ALLOW_EMPTY_PASSWORD: yes
-    #       BIND-ADDRESS: 0.0.0.0
-    #     ports:
-    #       - "3306:3306"
-    #     options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
-    # container:
-    #   image: ruby:2.7.7
+    services:
+      db:
+        image: mysql:8.0.32
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          BIND-ADDRESS: 0.0.0.0
+        ports:
+          - "3306:3306"
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+    container:
+      image: ruby:2.7.7
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7.7
 
       - name: Install dependencies
         run: |
@@ -47,12 +42,12 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --retry 3 --jobs 4
 
-      # - name: Setup Database
-      #   run: |
-      #     bundle exec rails db:create
-      #   env:
-      #     SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
-      #     SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+      - name: Setup Database
+        run: |
+          bundle exec rails db:create
+        env:
+          SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
       - name: Run RSpec tests
         run: bundle exec rspec spec/requests/v1
