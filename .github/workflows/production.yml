@@ -18,7 +18,6 @@ jobs:
   rspec:
     runs-on: ubuntu-latest
 
-
     services:
       db:
         image: mysql:8.0.32
@@ -28,6 +27,15 @@ jobs:
         ports:
           - "3306:3306"
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    container:
+      image: ruby:2.7.7
+      env:
+        # RAILS_ENV: test
+        RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+        RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+        RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+        RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
+        RDS_PORT: ${{ secrets.RDS_PORT }}
 
     steps:
       - name: Checkout code
@@ -49,11 +57,11 @@ jobs:
           bundle exec rails db:create
         env:
           # RAILS_ENV: test
-          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
-          RDS_PORT: ${{ secrets.RDS_PORT }}
+          # RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+          # RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+          # RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          # RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
+          # RDS_PORT: ${{ secrets.RDS_PORT }}
           SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
