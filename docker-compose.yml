@@ -17,7 +17,7 @@ services:
       RDS_PASSWORD: ${RDS_PASSWORD}
       RDS_HOSTNAME: ${RDS_HOSTNAME}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      RAILS_ENV: development
+      RAILS_ENV: ${RAILS_ENV}
     command: "bundle exec rails s -p 3000 -b 0.0.0.0"
     volumes:
       - .:/grow-api
