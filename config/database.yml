@@ -13,15 +13,22 @@ default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  database: grow_api_development
+  database: <%= ENV['RDS_DB_NAME'] || 'db' %>
   username: <%= ENV['RDS_USERNAME'] || 'root' %>
   password: <%= ENV['RDS_PASSWORD'] || '12345678' %>
   host: <%= ENV['RDS_HOSTNAME'] || 'db' %>
   port: <%= ENV['RDS_PORT'] || '3306' %>
 
 development:
-  <<: *default
+  # <<: *default
+  adapter: mysql2
+  encoding: utf8mb4
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   database: grow_api_development
+  username: <%= ENV['RDS_USERNAME'] || 'root' %>
+  password: <%= ENV['RDS_PASSWORD'] || '12345678' %>
+  host: <%= ENV['RDS_HOSTNAME'] || 'db' %>
+  port: <%= ENV['RDS_PORT'] || '3306' %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -52,7 +59,7 @@ test:
 
 production:
   <<: *default
-  database: grow_api_development
+  database: <%= ENV['RDS_DB_NAME'] %>
   username: <%= ENV['RDS_USERNAME'] %>
   password: <%= ENV['RDS_PASSWORD'] %>
   host: <%= ENV['RDS_HOSTNAME'] %>
