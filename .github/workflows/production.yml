@@ -36,11 +36,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7.7
-
       - name: Install dependencies
         run: |
           gem install bundler
