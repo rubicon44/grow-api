@@ -39,7 +39,7 @@ jobs:
           docker-compose run app bundle exec rails db:create
         env:
           # RAILS_ENV: test
-          RDS_DB_NAME: "db"
+          RDS_DB_NAME: "grow_api_development"
           RDS_USERNAME: "root"
           RDS_PASSWORD: "12345678"
           RDS_HOSTNAME: "db"
