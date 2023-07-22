@@ -35,9 +35,8 @@ jobs:
 
       - name: Setup Database
         run: |
-          docker-compose up -d
-          bundle exec rails db:create RAILS_ENV=development
-          bundle exec rails db:migrate RAILS_ENV=development
+          bundle exec rails db:create
+          bundle exec rails db:migrate
         env:
           RAILS_ENV: develop
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
