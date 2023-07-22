@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      db:
+      grow_api_development:
         image: mysql:8.0.32
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
