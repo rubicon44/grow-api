@@ -39,11 +39,11 @@ jobs:
           docker-compose run app bundle exec rails db:create
         env:
           # RAILS_ENV: test
-          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
-          RDS_PORT: ${{ secrets.RDS_PORT }}
+          RDS_DB_NAME: "db"
+          RDS_USERNAME: "root"
+          RDS_PASSWORD: "12345678"
+          RDS_HOSTNAME: "db"
+          RDS_PORT: "3306"
           SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
