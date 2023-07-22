@@ -22,10 +22,10 @@ jobs:
       db:
         image: mysql:8.0.32
         env:
-          # MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          # MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes # パスワード空を許可
-          BIND-ADDRESS: 0.0.0.0
+          MYSQL_ROOT_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.RDS_DB_NAME }}
+          MYSQL_USER: ${{ secrets.RDS_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.RDS_PASSWORD }}
         ports:
           - "3306:3306"
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
@@ -49,12 +49,6 @@ jobs:
         run: |
           bundle exec rails db:create
         env:
-          # RAILS_ENV: test
-          # RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          # RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          # RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          # RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
-          # RDS_PORT: ${{ secrets.RDS_PORT }}
           SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
