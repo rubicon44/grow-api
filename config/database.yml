@@ -20,15 +20,8 @@ default: &default
   port: <%= ENV['RDS_PORT'] || '3306' %>
 
 development:
-  # <<: *default
-  adapter: mysql2
-  encoding: utf8mb4
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  <<: *default
   database: grow_api_development
-  username: <%= ENV['RDS_USERNAME'] || 'root' %>
-  password: <%= ENV['RDS_PASSWORD'] || '12345678' %>
-  host: <%= ENV['RDS_HOSTNAME'] || 'db' %>
-  port: <%= ENV['RDS_PORT'] || '3306' %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
