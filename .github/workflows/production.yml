@@ -38,13 +38,13 @@ jobs:
           docker-compose build
           docker-compose run app rails db:create
         env:
-          RAILS_ENV: test
+          # RAILS_ENV: test
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
           RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
           RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
           RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
           RDS_PORT: ${{ secrets.RDS_PORT }}
-          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
+          SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
       - name: Run RSpec tests
