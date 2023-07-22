@@ -42,12 +42,12 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --retry 3 --jobs 4
 
-      # - name: Setup Database
-      #   run: |
-      #     bundle exec rails db:create
-      #   env:
-      #     SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
-      #     SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+      - name: Setup Database
+        run: |
+          bundle exec rails db:create
+        env:
+          SECRET_KEY_BASE_DEV: ${{ secrets.SECRET_KEY_BASE_DEV }}
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
       - name: Run RSpec tests
         run: bundle exec rspec spec/requests/v1
