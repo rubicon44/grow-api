@@ -35,6 +35,7 @@ jobs:
 
       - name: Setup Database
         run: |
+          cp config/database.yml
           bundle exec rails db:create
           bundle exec rails db:migrate
         env:
