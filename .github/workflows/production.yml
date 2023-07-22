@@ -35,9 +35,7 @@ jobs:
 
       - name: Setup Database
         run: |
-          docker volume ls
-          docker-compose build --no-cache
-          docker-compose run app bundle exec rails db:create
+          bundle exec rails db:create
         env:
           # RAILS_ENV: test
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
