@@ -15,7 +15,7 @@ env:
   ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
 
 jobs:
-  rspec:
+  rspec_and_rubocop:
     runs-on: ubuntu-latest
 
     services:
@@ -55,46 +55,46 @@ jobs:
       - name: Run RuboCop tests
         run: bundle exec rubocop
 
-  # deploy:
-  #   needs: [rspec]
-  #   runs-on: ubuntu-latest
+  deploy:
+    needs: [rspec_and_rubocop]
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Setup Ruby
-  #       uses: ruby/setup-ruby@v1
-  #       with:
-  #         ruby-version: 2.7.7
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.7
 
-  #     - name: Install dependencies
-  #       env:
-  #         BUNDLE_PATH: vendor/bundle
-  #       run: |
-  #         gem install bundler
-  #         bundle config path vendor/bundle
-  #         bundle install --retry 3 --jobs 4 --without development test
+      - name: Install dependencies
+        env:
+          BUNDLE_PATH: vendor/bundle
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --retry 3 --jobs 4 --without development test
 
-  #     - name: Install aws-cli
-  #       run: |
-  #         sudo apt-get -y install python3-pip
-  #         sudo pip3 install awscli
+      - name: Install aws-cli
+        run: |
+          sudo apt-get -y install python3-pip
+          sudo pip3 install awscli
 
-  #     - name: Configure AWS credentials
-  #       run: |
-  #         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-  #         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-  #         aws configure set default.region $AWS_REGION
+      - name: Configure AWS credentials
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set default.region $AWS_REGION
 
-  #     - name: Build Docker image
-  #       env:
-  #         IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
-  #       run: |
-  #         docker build -t $IMAGE_NAME .
-  #         aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
-  #         docker push $IMAGE_NAME
+      - name: Build Docker image
+        env:
+          IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NAME }}:${{ env.ECR_IMAGE_TAG }}
+        run: |
+          docker build -t $IMAGE_NAME .
+          aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
+          docker push $IMAGE_NAME
 
-  #     - name: Deploy to ECS
-  #       run: |
-  #         aws ecs update-service --cluster ${{ env.ECS_CLUSTER_NAME }} --service ${{ env.ECS_SERVICE_NAME }} --force-new-deployment
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER_NAME }} --service ${{ env.ECS_SERVICE_NAME }} --force-new-deployment
