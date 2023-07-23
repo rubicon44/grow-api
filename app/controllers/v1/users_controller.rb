@@ -69,7 +69,10 @@ module V1
       avatar_url = S3Uploader.upload_avatar_url_to_s3(avatar_file) if avatar_file.present?
       return render_not_found('avatar_url') unless avatar_url
 
-      render json: avatar_url, status: :ok
+      current_user = find_user
+      return render_not_found('User') unless current_user
+
+      render json: avatar_url, status: :ok if current_user.update(avatar_url: avatar_url)
     end
 
     # TODO: 追加予定

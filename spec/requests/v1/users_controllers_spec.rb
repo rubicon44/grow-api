@@ -622,4 +622,53 @@ RSpec.describe V1::UsersController, type: :request do
   end
 
   # TODO: describe 'GET #destroy (logged in)' do
+
+  describe 'PUT #upload_avatar' do
+    let!(:user7) { FactoryBot.create(:user) }
+    let!(:auth_headers7) { { 'Authorization' => JsonWebToken.encode(user_email: user7.email) } }
+    let(:csrf_token7) do
+      get '/v1/csrf_token'
+      JSON.parse(response.body)['csrf_token']['value']
+    end
+    let(:csrf_token_headers7) { { 'X-CSRF-Token' => csrf_token7 } }
+    let(:csrf_token_auth_headers7) do
+      auth_headers7.merge('X-CSRF-Token' => csrf_token7)
+    end
+
+    context 'when the avatar file is present' do
+      let(:avatar_file) { fixture_file_upload('avatar_1.png', 'image/png') }
+
+      it 'uploads the avatar file to AWS S3 and returns the avatar URL' do
+        # S3Uploaderクラスとそのメソッドをスタブ化して、実際のS3アップロードを回避。
+        allow(S3Uploader).to receive(:upload_avatar_url_to_s3).and_return('https://s3-bucket-for-user-avatar.s3.amazonaws.com/avatar_1.png')
+
+        post "/v1/#{user7.username}/upload_avatar", headers: csrf_token_auth_headers7, params: { file: avatar_file }
+        expect(response).to have_http_status(200)
+
+        avatar_url = response.body
+        expect(avatar_url).to match('https://s3-bucket-for-user-avatar.s3.amazonaws.com/avatar_1.png')
+        user7.reload
+        expect(user7.avatar_url).to eq(avatar_url)
+      end
+    end
+
+    context 'when the avatar file is missing' do
+      it 'returns a not found error' do
+        post "/v1/#{user7.username}/upload_avatar", headers: csrf_token_auth_headers7
+        expect(response).to have_http_status(404)
+        expect(response.body).to match('avatar_file')
+      end
+    end
+
+    context 'when the avatar file upload fails' do
+      it 'returns an error message' do
+        allow(S3Uploader).to receive(:upload_avatar_url_to_s3).and_raise(StandardError)
+
+        avatar_file = fixture_file_upload('avatar_1.png', 'image/png')
+        post "/v1/#{user7.username}/upload_avatar", headers: csrf_token_auth_headers7, params: { file: avatar_file }
+        expect(response).to have_http_status(500)
+        expect(response.body).to match('avatar_url')
+      end
+    end
+  end
 end
