@@ -4,7 +4,7 @@ module V1
   class UsersController < ApiController
     skip_before_action :check_authenticate!, only: %i[create], raise: false
     def show
-      user = find_user
+      user = find_user_by_username
       return render_not_found('User') if user.nil?
 
       page = params[:page].to_i
@@ -21,7 +21,7 @@ module V1
     end
 
     def followings
-      user = find_user
+      user = find_user_by_username
       return render_not_found('User') if user.nil?
 
       followings = user.followings.includes(:active_relationships,
@@ -30,7 +30,7 @@ module V1
     end
 
     def followers
-      user = find_user
+      user = find_user_by_username
       return render_not_found('User') if user.nil?
 
       followers = user.followers.includes(:active_relationships, :passive_relationships).order('relationships.id DESC')
@@ -50,7 +50,7 @@ module V1
     end
 
     def update
-      user = find_user
+      user = find_user_by_username
       return render_not_found('User') unless user
 
       current_user_id = params[:current_user_id].to_i
@@ -62,6 +62,7 @@ module V1
       render json: user, status: :ok if user.update(params_user_update)
     end
 
+    # TODO: users_controller内のコードが多いため、サービスクラスを導入し、処理を分割する。
     def upload_avatar
       avatar_file = params[:file]
       return render_not_found('avatar_file') unless avatar_file
@@ -69,7 +70,7 @@ module V1
       avatar_url = S3Uploader.upload_avatar_url_to_s3(avatar_file) if avatar_file.present?
       return render_not_found('avatar_url') unless avatar_url
 
-      current_user = find_user
+      current_user = find_user_by_username
       return render_not_found('User') unless current_user
 
       render json: avatar_url, status: :ok if current_user.update(avatar_url: avatar_url)
@@ -88,7 +89,7 @@ module V1
       params.require(:user).permit(:nickname, :username, :bio, :avatar_url)
     end
 
-    def find_user
+    def find_user_by_username
       User.find_by(username: params[:username])
     end
 
@@ -101,8 +102,8 @@ module V1
     end
 
     def add_tasks_and_liked_tasks(serialized_user, user, page, page_size)
-      tasks = fetch_tasks(user, page, page_size)
-      liked_tasks = fetch_liked_tasks(user, page, page_size)
+      tasks = User.fetch_tasks(user, page, page_size)
+      liked_tasks = User.fetch_liked_tasks(user, page, page_size)
 
       serialized_user.merge(
         tasks: TaskSerializer.serialize_tasks_collection(tasks),
@@ -111,7 +112,7 @@ module V1
     end
 
     def add_tasks(serialized_user, user, page, page_size)
-      tasks = fetch_tasks(user, page, page_size)
+      tasks = User.fetch_tasks(user, page, page_size)
 
       serialized_user.merge(
         tasks: TaskSerializer.serialize_tasks_collection(tasks)
@@ -119,25 +120,11 @@ module V1
     end
 
     def add_liked_tasks(serialized_user, user, page, page_size)
-      liked_tasks = fetch_liked_tasks(user, page, page_size)
+      liked_tasks = User.fetch_liked_tasks(user, page, page_size)
 
       serialized_user.merge(
         liked_tasks: TaskSerializer.serialize_tasks_collection(liked_tasks)
       )
-    end
-
-    def fetch_tasks(user, page, page_size)
-      user.tasks.includes(:user)
-          .order('tasks.id DESC')
-          .limit(page_size)
-          .offset((page - 1) * page_size)
-    end
-
-    def fetch_liked_tasks(user, page, page_size)
-      user.like_tasks.includes(:user)
-          .order('likes.id DESC')
-          .limit(page_size)
-          .offset((page - 1) * page_size)
     end
   end
 end
