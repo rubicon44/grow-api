@@ -21,6 +21,20 @@ class User < ApplicationRecord
 
   validate :validate_user
 
+  def self.fetch_tasks(user, page, page_size)
+    user.tasks.includes(:user)
+        .order('tasks.id DESC')
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+  end
+
+  def self.fetch_liked_tasks(user, page, page_size)
+    user.like_tasks.includes(:user)
+        .order('likes.id DESC')
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+  end
+
   # like function
   def like(task)
     likes.create(task_id: task.id)

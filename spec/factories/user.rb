@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :user do
+    avatar_url { 'https://your-s3-bucket-name.s3.amazonaws.com/sample_avatar.png' }
     bio { '' }
     sequence(:username) { |n| "test#{n}" }
     sequence(:nickname) { |n| "てすと#{n}" }
