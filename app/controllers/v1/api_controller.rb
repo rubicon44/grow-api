@@ -3,7 +3,7 @@
 module V1
   class ApiController < ApplicationController
     before_action :check_authenticate!
-    # rescue_from StandardError, with: :render500
+    rescue_from StandardError, with: :render500
     rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_csrf_token
 
     private
