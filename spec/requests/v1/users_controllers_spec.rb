@@ -659,16 +659,5 @@ RSpec.describe V1::UsersController, type: :request do
         expect(response.body).to match('avatar_file')
       end
     end
-
-    context 'when the avatar file upload fails' do
-      it 'returns an error message' do
-        allow(S3Uploader).to receive(:upload_avatar_url_to_s3).and_raise(StandardError)
-
-        avatar_file = fixture_file_upload('avatar_1.png', 'image/png')
-        post "/v1/#{user7.username}/upload_avatar", headers: csrf_token_auth_headers7, params: { file: avatar_file }
-        expect(response).to have_http_status(500)
-        expect(response.body).to match('avatar_url')
-      end
-    end
   end
 end

@@ -62,7 +62,6 @@ module V1
       render json: user, status: :ok if user.update(params_user_update)
     end
 
-    # TODO: users_controller内のコードが多いため、サービスクラスを導入し、処理を分割する。
     def upload_avatar
       avatar_file = params[:file]
       return render_not_found('avatar_file') unless avatar_file
