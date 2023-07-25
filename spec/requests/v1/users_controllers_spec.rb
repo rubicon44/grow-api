@@ -667,7 +667,7 @@ RSpec.describe V1::UsersController, type: :request do
         avatar_file = fixture_file_upload('avatar_1.png', 'image/png')
         post "/v1/#{user7.username}/upload_avatar", headers: csrf_token_auth_headers7, params: { file: avatar_file }
         expect(response).to have_http_status(500)
-        expect(response.body).to match('avatar_url')
+        expect(response.body).to match('Internal Server Error')
       end
     end
   end
