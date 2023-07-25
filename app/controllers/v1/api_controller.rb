@@ -31,10 +31,10 @@ module V1
       render json: { errors: 'Invalid CSRF token' }, status: :unprocessable_entity
     end
 
-    # def render500(errors)
-    #   logger.error(errors) # 例外をログに出力
-    #   render json: { errors: 'Internal Server Error' }, status: :internal_server_error
-    # end
+    def render500(errors)
+      # logger.error(errors) # 例外をログに出力
+      render json: { errors: 'Internal Server Error' }, status: :internal_server_error
+    end
 
     def render_bad_request(message)
       render json: { errors: "Invalid #{message}" }, status: :bad_request
