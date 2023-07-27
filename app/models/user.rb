@@ -22,14 +22,14 @@ class User < ApplicationRecord
   validate :validate_user
 
   def self.fetch_tasks(user, page, page_size)
-    user.tasks.includes(:user)
+    user.tasks.includes(:user, :likes, :notifications)
         .order('tasks.id DESC')
         .limit(page_size)
         .offset((page - 1) * page_size)
   end
 
   def self.fetch_liked_tasks(user, page, page_size)
-    user.like_tasks.includes(:user)
+    user.like_tasks.includes(:user, :likes, :notifications)
         .order('likes.id DESC')
         .limit(page_size)
         .offset((page - 1) * page_size)

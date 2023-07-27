@@ -89,7 +89,7 @@ module V1
     end
 
     def find_user_by_username
-      User.find_by(username: params[:username])
+      User.includes(:tasks, :likes).find_by(username: params[:username])
     end
 
     def require_user_authorization(user_id, current_user_id)
