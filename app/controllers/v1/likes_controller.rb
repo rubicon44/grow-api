@@ -27,10 +27,11 @@ module V1
 
     def destroy
       current_user = User.includes(:tasks, :likes).find_by(id: params[:current_user_id])
-      task = Task.includes(:user, :likes, :notifications).find_by(id: params[:task_id])
-      likes = task.likes
-
       return render_unprocessable('Current User') if current_user.nil?
+
+      task = Task.includes(:user, :likes, :notifications).find_by(id: params[:task_id])
+      likes = task.likes if task
+
       return render_not_found('Task') unless task
       return render_not_found('Likes') if likes.empty?
       return render_forbidden("Cannot delete other user's likes") unless Like.user_owns_likes?(current_user, likes)
