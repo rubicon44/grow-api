@@ -3,10 +3,10 @@
 module V1
   class LikesController < ApiController
     def index
-      task = Task.includes(:likes).find_by(id: params[:task_id])
+      task = Task.includes(likes: :user).find_by(id: params[:task_id])
       return render_not_found('Task') unless task
 
-      likes = Like.where(task_id: params[:task_id])
+      likes = task.likes
       like_count = likes.count
       likes_data = LikeSerializer.serialize_likes_collection(likes)
       render json: { likes: likes_data, like_count: like_count }, status: :ok
@@ -14,8 +14,8 @@ module V1
 
     def create
       like_params = params_like_create
-      current_user = User.find_by(id: like_params[:current_user_id])
-      task = Task.find_by(id: like_params[:task_id])
+      current_user = User.includes(:tasks, :likes).find_by(id: like_params[:current_user_id])
+      task = Task.includes(:user, :likes, :notifications).find_by(id: like_params[:task_id])
 
       return render_unprocessable('Current User') if current_user.nil?
       return render_not_found('Task') unless task
@@ -26,9 +26,9 @@ module V1
     end
 
     def destroy
-      current_user = User.find_by(id: params[:current_user_id])
-      task = Task.find_by(id: params[:task_id])
-      likes = Like.where(task_id: params[:task_id])
+      current_user = User.includes(:tasks, :likes).find_by(id: params[:current_user_id])
+      task = Task.includes(:user, :likes, :notifications).find_by(id: params[:task_id])
+      likes = task.likes
 
       return render_unprocessable('Current User') if current_user.nil?
       return render_not_found('Task') unless task
