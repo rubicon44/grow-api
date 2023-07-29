@@ -7,7 +7,7 @@ module V1
       page = params[:page].to_i
       page_size = params[:page_size].to_i
 
-      tasks = Task.includes(:user, :likes, :notifications).order('tasks.id DESC')
+      tasks = Task.includes(:user, :likes).order('tasks.id DESC')
       following_user_tasks = fetch_following_user_tasks
 
       tasks_data = serialize_tasks_with_users(paginate_tasks(tasks, page, page_size))
